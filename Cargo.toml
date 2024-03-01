@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "src/rgbonic_backend"
+]
+resolver = "2"
