@@ -11,9 +11,9 @@
       "type": "custom",
       "wasm": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity_dev.wasm.gz"
     },
-    "rgbonic_backend": {
-      "candid": "src/rgbonic_backend/rgbonic_backend.did",
-      "package": "rgbonic_backend",
+    "rgb": {
+      "candid": "actors/rgb/rgb.did",
+      "package": "rgb",
       "type": "rust"
     }
   },

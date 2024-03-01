@@ -15,6 +15,7 @@
 
 # rust
 target/
+Cargo.lock
 
 # frontend code
 node_modules/
@@ -23,3 +24,8 @@ dist/
 
 # environment variables
 .env
+
+# RGB
+/rgbs
+*.db
+data*
