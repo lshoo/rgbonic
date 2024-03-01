@@ -12,3 +12,21 @@ crate-type = ["cdylib"]
 candid = "0.10"
 ic-cdk = "0.12"
 ic-cdk-timers = "0.6" # Feel free to remove this dependency if you don't need timers
+
+# for RGB
+amplify = { workspace = true }
+strict_encoding = { workspace = true }
+strict_types = { workspace = true }
+# aluvm = { workspace = true }
+# bp-core = { workspace = true }
+rgb-std = { workspace = true }
+# rgb-schemata = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+
+
+
+# [patch.crates-io]
+# rgb-core = { git = "https://github.com/RGB-WG/rgb-core", branch = "master" }
+# rgb-std = { git = "https://github.com/RGB-WG/rgb-std", branch = "master" }
