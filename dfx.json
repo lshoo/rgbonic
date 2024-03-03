@@ -4,7 +4,8 @@
     "rgb": {
       "candid": "actors/rgb/rgb.did",
       "package": "rgb",
-      "type": "rust"
+      "type": "rust",
+      "target": "wasm32-unkown-unkown"
     }
   },
   "defaults": {

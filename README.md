@@ -26,30 +26,24 @@ dfx canister --help
 If you want to test your project locally, you can use the following commands:
 
 ```bash
+## Clone the 
 # Starts the replica, running in the background
 dfx start --background
 
-# Deploys your canisters to the replica and generates your candid interface
-dfx deploy
+# Compile the project with `wasm-wasi` inside the project folder
+cargo build --release --target wasm32-wasi
+
+# Translate `wasm32-wasi` target to wasm32-unknown-unknown` under the project directory
+wasi2ic ./target/wasm32-wasi/release/rgb.wasm rgb.wasm
+
+# Install the new wasm file to IC canister
+dfx canister install --mode reinstall --wasm rgb.wasm rgb
+
 ```
 
 Once the job completes, your application will be available at `http://localhost:4943?canisterId={asset_canister_id}`.
 
-If you have made changes to your backend canister, you can generate a new candid interface with
 
-```bash
-npm run generate
-```
-
-at any time. This is recommended before starting the frontend development server, and will be run automatically any time you run `dfx deploy`.
-
-If you are making frontend changes, you can start a development server with
-
-```bash
-npm start
-```
-
-Which will start a server at `http://localhost:8080`, proxying API requests to the replica at port 4943.
 
 ### Note on frontend environment variables
 

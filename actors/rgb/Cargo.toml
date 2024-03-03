@@ -17,13 +17,14 @@ ic-cdk-timers = "0.6" # Feel free to remove this dependency if you don't need ti
 amplify = { workspace = true }
 strict_encoding = { workspace = true }
 strict_types = { workspace = true }
-# aluvm = { workspace = true }
-# bp-core = { workspace = true }
+aluvm = { workspace = true }
+bp-core = { workspace = true }
 rgb-std = { workspace = true }
 # rgb-schemata = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 sha2 = { workspace = true }
+ic-wasi-polyfill = { git = "https://github.com/wasm-forge/ic-wasi-polyfill", version = "0.3.17" }
 
 
 
