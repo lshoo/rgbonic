@@ -26,7 +26,13 @@ dfx canister --help
 If you want to test your project locally, you can use the following commands:
 
 ```bash
-## Clone the 
+# Clone the `wasm-forge/wasi2ic` project:
+git clone https://github.com/wasm-forge/wasi2ic
+
+## Enter the wasi2ic directory and install it
+cd wasi2ic
+cargo install --path .
+
 # Starts the replica, running in the background
 dfx start --background
 
@@ -38,6 +44,9 @@ wasi2ic ./target/wasm32-wasi/release/rgb.wasm rgb.wasm
 
 # Install the new wasm file to IC canister
 dfx canister install --mode reinstall --wasm rgb.wasm rgb
+
+# Call the canister to verify 
+dfx canister call rgb greet "人生只有一件事：修"
 
 ```
 
