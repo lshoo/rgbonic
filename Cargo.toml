@@ -6,17 +6,34 @@ resolver = "2"
 
 [workspace.dependencies]
 # for RGB
-amplify = "4.6.0"
-strict_encoding = "2.7.0-beta.1"
-strict_types = "2.7.0-beta.1"
 aluvm = "0.11.0-beta.4"
+amplify = "4.6.0"
+ascii-armor = "0.2.0"
+bdk = { version = "1.0.0-alpha.6", default-features = false }
+
 bp-core = "0.11.0-beta.4"
+hex = "0.4.3"
 rgb-std = { version = "0.11.0-beta.4", features = ["serde"] }
 rgb-schemata = "0.11.0-beta.4"
 serde = "1.0"
 serde_json = "1.0"
 sha2 = "0.10.8"
+strict_encoding = "2.7.0-beta.1"
+strict_types = "2.7.0-beta.1"
 
+# [patch.crates-io]
+# rgb-core = { git = "https://github.com/RGB-WG/rgb-core", branch = "master" }
+# rgb-std = { git = "https://github.com/RGB-WG/rgb-std", branch = "master" }
 [patch.crates-io]
+commit_verify = { git = "https://github.com/LNP-BP/client_side_validation", branch = "master" }
+bp-consensus = { git = "https://github.com/BP-WG/bp-core", branch = "master" }
+bp-dbc = { git = "https://github.com/BP-WG/bp-core", branch = "master" }
+bp-seals = { git = "https://github.com/BP-WG/bp-core", branch = "master" }
+bp-core = { git = "https://github.com/BP-WG/bp-core", branch = "master" }
 rgb-core = { git = "https://github.com/RGB-WG/rgb-core", branch = "master" }
 rgb-std = { git = "https://github.com/RGB-WG/rgb-std", branch = "master" }
+rgb-schemata = { git = "https://github.com/RGB-WG/rgb-schemata", branch = "master" }
+
+[profile.release]
+debug = 0
+lto = "off"
