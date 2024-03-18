@@ -30,8 +30,10 @@ bp-consensus = { git = "https://github.com/BP-WG/bp-core", branch = "master" }
 bp-dbc = { git = "https://github.com/BP-WG/bp-core", branch = "master" }
 bp-seals = { git = "https://github.com/BP-WG/bp-core", branch = "master" }
 bp-core = { git = "https://github.com/BP-WG/bp-core", branch = "master" }
-rgb-core = { git = "https://github.com/RGB-WG/rgb-core", branch = "master" }
-rgb-std = { git = "https://github.com/RGB-WG/rgb-std", branch = "master" }
+rgb-core = { git = "https://github.com/RGB-WG/rgb-core",  branch = "master" }
+rgb-std = { git = "https://github.com/RGB-WG/rgb-std",  branch = "master" }
+# rgb-core = { git = "https://github.com/RGB-WG/rgb-core",  rev = "2e01d873e0f586e48452e2c74debc8d76a7406bd" }
+# rgb-std = { git = "https://github.com/RGB-WG/rgb-std",  rev = "0221a4cecbb8f5dd4e32fc25c4010c523310caee"}
 rgb-schemata = { git = "https://github.com/RGB-WG/rgb-schemata", branch = "master" }
 
 [profile.release]

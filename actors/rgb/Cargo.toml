@@ -21,7 +21,7 @@ ascii-armor = { workspace = true }
 bp-core = { workspace = true }
 hex = { workspace = true }
 rgb-std = { workspace = true }
-# rgb-schemata = { workspace = true }
+rgb-schemata = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 sha2 = { workspace = true }
@@ -31,10 +31,6 @@ strict_types = { workspace = true }
 ic-wasi-polyfill = { git = "https://github.com/wasm-forge/ic-wasi-polyfill", version = "0.3.17" }
 
 
-
-# [patch.crates-io]
-# rgb-core = { git = "https://github.com/RGB-WG/rgb-core", branch = "master" }
-# rgb-std = { git = "https://github.com/RGB-WG/rgb-std", branch = "master" }
 # [patch.crates-io]
 # commit_verify = { git = "https://github.com/LNP-BP/client_side_validation", branch = "master" }
 # bp-consensus = { git = "https://github.com/BP-WG/bp-core", branch = "master" }
