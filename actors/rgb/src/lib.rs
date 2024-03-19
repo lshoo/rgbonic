@@ -28,6 +28,11 @@ fn greet(name: String) -> String {
 
     let contract_id = contract.contract_id();
 
+    println!(
+        "Current instruction count: {} after init rgb20 asset",
+        ic_cdk::api::instruction_counter()
+    );
+
     // Let's create some stock - an in-memory stash and inventory around it:
     let mut stock = Stock::default();
     stock.import_iface(Rgb20::iface()).unwrap();
@@ -38,7 +43,12 @@ fn greet(name: String) -> String {
 
     stock.import_contract(contract, &mut DumbResolver).unwrap();
 
-    for i in 0..10 {
+    println!(
+        "Current instruction count: {} after import rgb20 asset",
+        ic_cdk::api::instruction_counter()
+    );
+
+    for i in 0..3 {
         let contract = NonInflatableAsset::testnet(
             format!("TEST{i}").as_str(),
             format!("Test asset {i}").as_str(),
@@ -52,6 +62,12 @@ fn greet(name: String) -> String {
         .expect("invalid contract data");
 
         stock.import_contract(contract, &mut DumbResolver).unwrap();
+
+        println!(
+            "Current instruction count: {} after import rgb20 asset in loop {:?}",
+            ic_cdk::api::instruction_counter(),
+            i
+        );
     }
 
     // Reading contract state through the interface from the stock:
@@ -60,15 +76,21 @@ fn greet(name: String) -> String {
         .unwrap();
     let contract = Rgb20::from(contract);
 
+    println!(
+        "Current instruction count: {} after read rgb20 asset",
+        ic_cdk::api::instruction_counter()
+    );
+
     ic_cdk::api::print(format!("Hello from IC debugger, {}, {}", name, beneficiary));
     println!("Hello from WASI: {}, {}", name, beneficiary);
 
     // format!("Hello, {}, {}!", name, beneficiary)
     format!(
-        "Hello, {}, {}, Total supply: {:?}",
+        "Hello, {}, {}, Total supply: {:?}, instructions: {:?}",
         name,
         beneficiary,
-        contract.total_supply()
+        contract.total_supply(),
+        ic_cdk::api::instruction_counter(),
     )
 }
 
