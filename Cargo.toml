@@ -1,16 +1,22 @@
 [workspace]
 members = [
-    "actors/rgb"
+    "actors/rgb",
+    "wallet",
 ]
 resolver = "2"
 
 [workspace.dependencies]
+# for ICP
+candid = "0.10"
+ic-cdk = "0.13"
+ic-cdk-timers = "0.7" # Feel free to remove this dependency if you don't need timers
+
 # for RGB
 aluvm = "0.11.0-beta.4"
 amplify = "4.6.0"
 ascii-armor = "0.2.0"
-bdk = { version = "1.0.0-alpha.6", default-features = false }
 
+bitcoin = "0.31"
 bp-core = "0.11.0-beta.4"
 hex = "0.4.3"
 rgb-std = { version = "0.11.0-beta.4", features = ["serde"] }
@@ -20,6 +26,8 @@ serde_json = "1.0"
 sha2 = "0.10.8"
 strict_encoding = "2.7.0-beta.1"
 strict_types = "2.7.0-beta.1"
+
+thiserror = "1.0"
 
 # [patch.crates-io]
 # rgb-core = { git = "https://github.com/RGB-WG/rgb-core", branch = "master" }
