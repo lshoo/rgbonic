@@ -1,8 +1,10 @@
 use bitcoin::{Address, EcdsaSighashType};
 
 pub mod api;
+pub mod constants;
 pub mod error;
 pub mod tx;
+pub mod utils;
 
 pub const SIG_HASH_TYPE: EcdsaSighashType = EcdsaSighashType::All;
 
