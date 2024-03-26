@@ -1,5 +1,7 @@
 use std::future::Future;
 
+use bitcoin::secp256k1::PublicKey;
+use bitcoin::{Address, Network, ScriptBuf};
 use candid::utils::{ArgumentDecoder, ArgumentEncoder};
 use candid::Principal;
 use ic_cdk::api::call::{call_with_payment, CallResult};
@@ -94,6 +96,36 @@ pub async fn send_transaction(transaction: Vec<u8>, network: BitcoinNetwork) -> 
         .await
         .map(|((),)| ())
         .map_err(|e| e.into())
+}
+
+/// Create wallet for a given Principal, pk1, pk2 and bitcoin network
+///
+pub async fn create_wallet(
+    principal: Principal,
+    pk1: &[u8],
+    pk2: &[u8],
+    bitcoin_network: Network,
+) -> WalletResult<Address> {
+    if !is_normal_principal(principal) {
+        return Err(WalletError::InvalidPrincipal(principal));
+    }
+
+    let witness_script = bitcoin::blockdata::script::Builder::new()
+        .push_int(2)
+        .push_slice(PublicKey::from_slice(pk1)?.serialize())
+        .push_slice(PublicKey::from_slice(pk2)?.serialize())
+        .push_int(2)
+        .push_opcode(bitcoin::blockdata::opcodes::all::OP_CHECKMULTISIG)
+        .into_script();
+
+    let script_pub_key = ScriptBuf::new_p2wsh(&witness_script.wscript_hash());
+
+    // Generate the wallet address from the P2WSH script pubkey
+    bitcoin::Address::from_script(&script_pub_key, bitcoin_network).map_err(|e| e.into())
+}
+
+pub fn is_normal_principal(principal: Principal) -> bool {
+    principal != Principal::management_canister() && Principal::anonymous() != principal
 }
 
 pub fn call_management_with_payment<T: ArgumentEncoder, R: for<'a> ArgumentDecoder<'a>>(

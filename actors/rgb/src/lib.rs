@@ -2,6 +2,7 @@ use std::convert::Infallible;
 
 use amplify::hex::FromHex;
 use bp::dbc::Method;
+use candid::Principal;
 use rgb_schemata::NonInflatableAsset;
 use rgbstd::{
     interface::{IfaceClass, IssuerClass, Rgb20},
@@ -86,9 +87,10 @@ fn greet(name: String) -> String {
 
     // format!("Hello, {}, {}!", name, beneficiary)
     format!(
-        "Hello, {}, {}, Total supply: {:?}, instructions: {:?}",
+        "Hello, {}, {}, management canister: {:?}, Total supply: {:?}, instructions: {:?}",
         name,
         beneficiary,
+        Principal::management_canister(),
         contract.total_supply(),
         ic_cdk::api::instruction_counter(),
     )
