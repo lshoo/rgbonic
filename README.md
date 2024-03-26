@@ -42,6 +42,9 @@ cargo build --release --target wasm32-wasi
 # Translate `wasm32-wasi` target to wasm32-unknown-unknown` under the project directory
 wasi2ic ./target/wasm32-wasi/release/rgb.wasm rgb.wasm
 
+# Create canister for `rgb` if first time 
+dfx canister create rgb
+
 # Install the new wasm file to IC canister
 dfx canister install --mode reinstall --wasm rgb.wasm rgb
 

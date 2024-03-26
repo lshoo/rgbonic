@@ -90,7 +90,7 @@ fn greet(name: String) -> String {
         "Hello, {}, {}, management canister: {:?}, Total supply: {:?}, instructions: {:?}",
         name,
         beneficiary,
-        Principal::management_canister(),
+        Principal::management_canister().to_string(),
         contract.total_supply(),
         ic_cdk::api::instruction_counter(),
     )
