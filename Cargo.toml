@@ -1,15 +1,17 @@
 [workspace]
-members = [
-    "actors/rgb",
+members = [ 
+    "actors/*",
     "wallet",
 ]
 resolver = "2"
 
 [workspace.dependencies]
 # for ICP
-candid = "0.10.6"
+candid = "0.10"
 ic-cdk = "0.13"
+ic-ledger-types = "0.10"
 ic-cdk-timers = "0.7" # Feel free to remove this dependency if you don't need timers
+ic-stable-structures = "0.6"
 
 # for RGB
 aluvm = "0.11.0-beta.4"

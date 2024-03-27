@@ -1,0 +1,9 @@
+
+type args = record {
+    key: text;
+};
+
+service : (args) -> { 
+    get_ecdsa_key_name : () -> (text) query 
+}
+

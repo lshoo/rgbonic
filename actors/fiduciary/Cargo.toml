@@ -1,14 +1,18 @@
 [package]
-name = "wallet"
+name = "fiduciary"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+crate-type = ["cdylib"]
+
 [dependencies]
-bitcoin = { workspace = true }
 candid = { workspace = true }
 ic-cdk = { workspace = true }
+ic-cdk-timers = { workspace = true }
+ic-ledger-types ={ worksapce = true }
 ic-stable-structures = { workspace = true }
-serde = { workspace = true }
-thiserror ={ workspace = true }
+
+wallet = { path = "../../wallet" }

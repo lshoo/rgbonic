@@ -6,6 +6,12 @@
       "package": "rgb",
       "type": "rust",
       "target": "wasm32-unkown-unkown"
+    },
+    "fiduciary": {
+      "candid": "actors/fiduciary/fiduciary.did",
+      "package": "fiduciary",
+      "type": "rust",
+      "target": "wasm32-unkown-unkown"
     }
   },
   "defaults": {
