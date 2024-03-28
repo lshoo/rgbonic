@@ -1,29 +1,21 @@
-
-
-
-
-use bitcoin::Address;
-use candid::{CandidType, Deserialize};
+use candid::{CandidType, Decode, Deserialize, Encode};
 use ic_stable_structures::{storable::Bound, Storable};
 
 use crate::constants::ECDSA_SIZE;
 
-
 #[derive(Debug, Clone, CandidType, Deserialize, Default)]
 pub struct ECDSAKey {
     pub key: String,
+    pub updated_time: u64,
 }
 
 impl Storable for ECDSAKey {
     fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
-        // String already implements `Storable`.
-        self.key.to_bytes()
+        std::borrow::Cow::Owned(Encode!(self).unwrap())
     }
 
     fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
-        Self {
-            key: String::from_bytes(bytes)
-        }
+        Decode!(bytes.as_ref(), Self).unwrap()
     }
 
     const BOUND: Bound = Bound::Bounded {
@@ -32,7 +24,8 @@ impl Storable for ECDSAKey {
     };
 }
 
-pub struct UserWallet {
-    pub address: Address,
-    pub derivation_path: Vec<Vec<u8>>,
+#[derive(Debug, Clone, CandidType, Deserialize)]
+pub struct UpdateKeyRequest {
+    pub new_key: String,
+    pub old_key: String,
 }

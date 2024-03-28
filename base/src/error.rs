@@ -1,6 +1,6 @@
-use candid::Principal;
+use candid::{CandidType, Principal};
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, CandidType)]
 pub enum WalletError {
     #[error("Invalid transaction")]
     InvalidTransaction,
@@ -18,10 +18,19 @@ pub enum WalletError {
     InvalidPrincipal(Principal),
 
     #[error("Secp256k1 error: {0:?}")]
-    Secp256k1Error(bitcoin::secp256k1::Error),
+    Secp256k1Error(String),
 
     #[error("Bitcoin Address error: {0:?}")]
-    BitcoinAddressError(bitcoin::address::Error),
+    BitcoinAddressError(String),
+
+    #[error("{0:?} ECDSA key already exists")]
+    ECDSAKeyAlreadyExists(String),
+
+    #[error("{0:?} ECDSA key not found")]
+    ECDSAKeyNotFound(String),
+
+    #[error("Failed to update ECDSA key")]
+    ECDSAKeyUpdateError,
 }
 
 impl From<(ic_cdk::api::call::RejectionCode, String)> for WalletError {
@@ -32,12 +41,12 @@ impl From<(ic_cdk::api::call::RejectionCode, String)> for WalletError {
 
 impl From<bitcoin::secp256k1::Error> for WalletError {
     fn from(e: bitcoin::secp256k1::Error) -> Self {
-        WalletError::Secp256k1Error(e)
+        WalletError::Secp256k1Error(e.to_string())
     }
 }
 
 impl From<bitcoin::address::Error> for WalletError {
     fn from(e: bitcoin::address::Error) -> Self {
-        WalletError::BitcoinAddressError(e)
+        WalletError::BitcoinAddressError(e.to_string())
     }
 }

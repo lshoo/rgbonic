@@ -7,9 +7,9 @@
       "type": "rust",
       "target": "wasm32-unkown-unkown"
     },
-    "fiduciary": {
-      "candid": "actors/fiduciary/fiduciary.did",
-      "package": "fiduciary",
+    "steward": {
+      "candid": "actors/steward/steward.did",
+      "package": "steward",
       "type": "rust",
       "target": "wasm32-unkown-unkown"
     }

@@ -1,5 +1,3 @@
-
-
 pub mod api;
 pub mod constants;
 pub mod domain;
@@ -7,7 +5,7 @@ pub mod error;
 pub mod tx;
 pub mod utils;
 
-use bitcoin:: EcdsaSighashType;
+use bitcoin::EcdsaSighashType;
 
 pub const SIG_HASH_TYPE: EcdsaSighashType = EcdsaSighashType::All;
 
