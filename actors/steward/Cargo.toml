@@ -17,3 +17,5 @@ ic-stable-structures = { workspace = true }
 serde = { workspace = true }
 
 thiserror = { workspace = true }
+
+base = { path = "../../base"}

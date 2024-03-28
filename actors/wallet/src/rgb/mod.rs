@@ -14,8 +14,7 @@ use rgbstd::{
 };
 use strict_types::StrictDumb;
 
-#[ic_cdk::update]
-fn greet(name: String) -> String {
+pub fn issue_rgb20() -> String {
     let beneficiary_txid =
         Txid::from_hex("d6afd1233f2c3a7228ae2f07d64b2091db0d66f2e8ef169cf01217617f51b8fb").unwrap();
     let beneficiary = Outpoint::new(beneficiary_txid, 1);
@@ -82,15 +81,13 @@ fn greet(name: String) -> String {
         ic_cdk::api::instruction_counter()
     );
 
-    ic_cdk::api::print(format!("Hello from IC debugger, {}, {}", name, beneficiary));
-    println!("Hello from WASI: {}, {}", name, beneficiary);
+    ic_cdk::api::print(format!("Hello from IC debugger, {}", beneficiary));
+    println!("Hello from WASI: {}", beneficiary);
 
     // format!("Hello, {}, {}!", name, beneficiary)
     format!(
-        "Hello, {}, {}, management canister: {:?}, Total supply: {:?}, instructions: {:?}",
-        name,
-        beneficiary,
-        Principal::management_canister().to_string(),
+        "Contract id: {:?}, supply: {:?}, instructions: {:?}",
+        contract_id,
         contract.total_supply(),
         ic_cdk::api::instruction_counter(),
     )

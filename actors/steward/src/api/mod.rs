@@ -1,6 +1,7 @@
 mod get_ecdsa_key;
 mod register_ecdsa_key;
 mod update_ecdsa_key;
+mod update_public_key;
 
 use candid::Principal;
 use ic_cdk::export_candid;

@@ -1,5 +1,5 @@
 [package]
-name = "rgb"
+name = "wallet"
 version = "0.1.0"
 edition = "2021"
 
@@ -12,12 +12,13 @@ crate-type = ["cdylib"]
 candid = { workspace = true }
 ic-cdk = { workspace = true }
 ic-cdk-timers = { workspace = true }
+ic-stable-structures = { workspace = true }
 
-# for RGB
+# for bitcoin & RGB
 aluvm = { workspace = true }
 amplify = { workspace = true }
 ascii-armor = { workspace = true }
-
+bitcoin = { workspace = true }
 bp-core = { workspace = true }
 hex = { workspace = true }
 rgb-std = { workspace = true }
@@ -29,6 +30,8 @@ strict_encoding = { workspace = true }
 strict_types = { workspace = true }
 
 ic-wasi-polyfill = { git = "https://github.com/wasm-forge/ic-wasi-polyfill", version = "0.3.17" }
+
+base = { path = "../../base" }
 
 
 # [patch.crates-io]
