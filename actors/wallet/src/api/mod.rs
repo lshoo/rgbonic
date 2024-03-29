@@ -7,7 +7,7 @@ use candid::Principal;
 use ic_cdk::{query, update};
 
 use crate::domain::{Metadata, UpdateKeyRequest};
-use crate::context::METADATA;
+use crate::context::STATE;
 use crate::error::WalletError;
 
 #[update]
@@ -26,7 +26,7 @@ pub fn register_ecdsa_key(key: String) -> Result<bool, WalletError> {
     let caller = ic_caller();
     let updated_time = ic_time();
 
-    register_ecdsa_key::serve(caller, key, updated_time)
+    register_ecdsa_key::serve(&caller, key, updated_time)
 }
 
 #[update]
@@ -34,12 +34,32 @@ pub fn update_ecdsa_key(req: UpdateKeyRequest) -> Result<bool, WalletError> {
     let caller = ic_caller();
     let updated_time = ic_time();
 
-    update_ecdsa_key::serve(caller, req.new_key, req.old_key, updated_time)
+    update_ecdsa_key::serve(&caller, req.new_key, req.old_key, updated_time)
 }
 
 #[query]
 fn metadata() -> Metadata {
-    METADATA.with(|m| m.borrow().get().clone())
+    STATE.with(|m| m.borrow().metadata.get().clone())
+}
+
+#[query]
+fn controller() -> Result<Vec<Principal>, WalletError> {
+    let caller = ic_caller();
+
+    STATE.with(|s| {
+        let state = s.borrow();
+
+        match state.controllers.get(&caller) {
+            Some(_) => {
+                Ok(state.controllers.iter().map(|(k, _)| k).collect())
+            }
+            None => {
+                Err(WalletError::UnAuthorized(caller.to_string()))
+            }
+        }
+        
+        
+    })
 }
 
 fn ic_caller() -> Principal {

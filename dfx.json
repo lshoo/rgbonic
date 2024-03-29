@@ -5,13 +5,23 @@
       "candid": "actors/wallet/wallet.did",
       "package": "wallet",
       "type": "rust",
-      "target": "wasm32-unkown-unkown"
+      "target": "wasm32-unkown-unkown",
+      "metadata": [
+        {
+          "name": "candid:service"
+        }
+      ]
     },
     "steward": {
       "candid": "actors/steward/steward.did",
       "package": "steward",
       "type": "rust",
-      "target": "wasm32-unkown-unkown"
+      "target": "wasm32-unkown-unkown",
+      "metadata": [
+        {
+          "name": "candid:service"
+        }
+      ]
     }
   },
   "defaults": {

@@ -6,7 +6,7 @@ pub mod domain;
 pub mod error;
 pub mod rgb;
 
-use crate::context::METADATA;
+use crate::context::STATE;
 use crate::domain::{Metadata, UpdateKeyRequest};
 use crate::error::WalletError;
 
@@ -29,14 +29,18 @@ fn greet(name: String) -> String {
 fn init(network: String) {
     ic_wasi_polyfill::init(&[0u8; 32], &[]);
 
-    METADATA.with(|m| {
-        let mut metadata = m.borrow_mut();
+    STATE.with(|m| {
+        let mut state = m.borrow_mut();
+        let metadata = &mut state.metadata;
         metadata
             .set(Metadata {
                 network: format_network(&network),
                 ..Default::default()
             })
-            .expect("Failed to init network")
+            .expect("Failed to init network");
+
+        state.controllers.insert(ic_caller(), ic_time())
+
     });
 }
 
@@ -47,6 +51,10 @@ fn issue_rgb20() -> String {
 
 pub fn ic_caller() -> Principal {
     ic_cdk::caller()
+}
+
+pub fn ic_time() -> u64 {
+    ic_cdk::api::time()
 }
 
 export_candid!();

@@ -16,4 +16,7 @@ pub enum WalletError {
 
     #[error("Failed to init network")]
     NetworkAlreadyExists,
+
+    #[error("No Authorize to {0:?}")]
+    UnAuthorized(String),
 }
