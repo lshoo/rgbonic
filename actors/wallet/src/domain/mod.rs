@@ -11,6 +11,8 @@ use crate::constants::{METADATA_SIZE, SELF_CUSTODY_SIZE};
 #[derive(Debug, Clone, CandidType, Deserialize, Default)]
 pub struct Metadata {
     pub network: ICBitcoinNetwork,
+    pub key: String,
+    pub updated_time: u64,
 }
 
 impl Storable for Metadata {
@@ -138,4 +140,11 @@ impl Storable for RawWallet {
         max_size: SELF_CUSTODY_SIZE as u32,
         is_fixed_size: false,
     };
+}
+
+
+#[derive(Debug, Clone, CandidType, Deserialize)]
+pub struct UpdateKeyRequest {
+    pub new_key: String,
+    pub old_key: String,
 }

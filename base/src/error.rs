@@ -1,7 +1,7 @@
 use candid::{CandidType, Principal};
 
 #[derive(Debug, thiserror::Error, CandidType)]
-pub enum WalletError {
+pub enum Error {
     #[error("Invalid transaction")]
     InvalidTransaction,
 
@@ -33,20 +33,20 @@ pub enum WalletError {
     ECDSAKeyUpdateError,
 }
 
-impl From<(ic_cdk::api::call::RejectionCode, String)> for WalletError {
+impl From<(ic_cdk::api::call::RejectionCode, String)> for Error {
     fn from(e: (ic_cdk::api::call::RejectionCode, String)) -> Self {
-        WalletError::ICCallError(e)
+        Error::ICCallError(e)
     }
 }
 
-impl From<bitcoin::secp256k1::Error> for WalletError {
+impl From<bitcoin::secp256k1::Error> for Error {
     fn from(e: bitcoin::secp256k1::Error) -> Self {
-        WalletError::Secp256k1Error(e.to_string())
+        Error::Secp256k1Error(e.to_string())
     }
 }
 
-impl From<bitcoin::address::Error> for WalletError {
+impl From<bitcoin::address::Error> for Error {
     fn from(e: bitcoin::address::Error) -> Self {
-        WalletError::BitcoinAddressError(e.to_string())
+        Error::BitcoinAddressError(e.to_string())
     }
 }

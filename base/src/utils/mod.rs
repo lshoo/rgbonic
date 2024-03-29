@@ -15,9 +15,9 @@ use crate::constants::{
     SEND_TRANSACTION_PER_BYTE_CYCLES,
 };
 use crate::ICBitcoinNetwork;
-use crate::{constants::GET_BALANCE_COST_CYCLES, error::WalletError};
+use crate::{constants::GET_BALANCE_COST_CYCLES, error::Error};
 
-pub type WalletResult<T> = Result<T, WalletError>;
+pub type WalletResult<T> = Result<T, Error>;
 
 /// Returns the balance of the given bitcoin address from IC management canister
 ///
@@ -26,7 +26,7 @@ pub type WalletResult<T> = Result<T, WalletError>;
 pub async fn get_balance(
     address: impl Into<String>,
     network: BitcoinNetwork,
-) -> Result<Satoshi, WalletError> {
+) -> Result<Satoshi, Error> {
     let args = (GetBalanceRequest {
         address: address.into(),
         network,
@@ -48,7 +48,7 @@ pub async fn get_balance(
 pub async fn get_utxos(
     address: impl Into<String>,
     network: BitcoinNetwork,
-) -> Result<GetUtxosResponse, WalletError> {
+) -> Result<GetUtxosResponse, Error> {
     let args = (GetUtxosRequest {
         address: address.into(),
         network,
@@ -108,7 +108,7 @@ pub async fn create_wallet(
     bitcoin_network: Network,
 ) -> WalletResult<Address> {
     if !is_normal_principal(principal) {
-        return Err(WalletError::InvalidPrincipal(principal));
+        return Err(Error::InvalidPrincipal(principal));
     }
 
     let witness_script = bitcoin::blockdata::script::Builder::new()

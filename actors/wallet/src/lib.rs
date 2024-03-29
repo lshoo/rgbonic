@@ -3,13 +3,16 @@ pub mod bitcoin;
 pub mod constants;
 pub mod context;
 pub mod domain;
+pub mod error;
 pub mod rgb;
 
 use crate::context::METADATA;
-use crate::domain::Metadata;
+use crate::domain::{Metadata, UpdateKeyRequest};
+use crate::error::WalletError;
+
 use base::utils::format_network;
 use candid::Principal;
-use ic_cdk::{export_candid, query};
+use ic_cdk::export_candid;
 
 #[ic_cdk::update]
 fn greet(name: String) -> String {
@@ -20,10 +23,7 @@ fn greet(name: String) -> String {
     )
 }
 
-#[query]
-fn metadata() -> Metadata {
-    METADATA.with(|m| m.borrow().get().clone())
-}
+
 
 #[ic_cdk::init]
 fn init(network: String) {
@@ -34,6 +34,7 @@ fn init(network: String) {
         metadata
             .set(Metadata {
                 network: format_network(&network),
+                ..Default::default()
             })
             .expect("Failed to init network")
     });
