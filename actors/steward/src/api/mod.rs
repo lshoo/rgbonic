@@ -3,18 +3,23 @@ mod register_ecdsa_key;
 mod update_ecdsa_key;
 mod update_public_key;
 
+use base::utils::format_network;
 use candid::Principal;
-use ic_cdk::export_candid;
+use ic_cdk::{export_candid, init, query, update};
 
-use crate::{domain::UpdateKeyRequest, error::StewardError};
+use crate::context::METADATA;
+use crate::{
+    domain::{Metadata, UpdateKeyRequest},
+    error::StewardError,
+};
 
-#[ic_cdk::query]
+#[query]
 pub fn get_ecdsa_key() -> Result<String, StewardError> {
     let caller = ic_caller();
     get_ecdsa_key::serve(&caller)
 }
 
-#[ic_cdk::update]
+#[update]
 pub fn register_ecdsa_key(key: String) -> Result<bool, StewardError> {
     let caller = ic_caller();
     let updated_time = ic_time();
@@ -22,12 +27,29 @@ pub fn register_ecdsa_key(key: String) -> Result<bool, StewardError> {
     register_ecdsa_key::serve(caller, key, updated_time)
 }
 
-#[ic_cdk::update]
+#[update]
 pub fn update_ecdsa_key(req: UpdateKeyRequest) -> Result<bool, StewardError> {
     let caller = ic_caller();
     let updated_time = ic_time();
 
     update_ecdsa_key::serve(caller, req.new_key, req.old_key, updated_time)
+}
+
+#[query]
+fn metadata() -> Metadata {
+    METADATA.with(|m| m.borrow().get().clone())
+}
+
+#[init]
+fn init(network: String) {
+    METADATA.with(|m| {
+        let mut metadata = m.borrow_mut();
+        metadata
+            .set(Metadata {
+                network: format_network(&network),
+            })
+            .expect("Failed to init network")
+    });
 }
 
 export_candid!();

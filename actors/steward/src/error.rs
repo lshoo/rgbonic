@@ -10,4 +10,7 @@ pub enum StewardError {
 
     #[error("Failed to update ECDSA key")]
     ECDSAKeyUpdateError,
+
+    #[error("Failed to init network")]
+    NetworkAlreadyExists,
 }

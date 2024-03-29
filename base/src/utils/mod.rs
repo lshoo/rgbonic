@@ -14,6 +14,7 @@ use crate::constants::{
     GET_CURRENT_FEE_PERCENTILES_CYCLES, GET_UTXOS_COST_CYCLES, SEND_TRANSACTION_BASE_CYCLES,
     SEND_TRANSACTION_PER_BYTE_CYCLES,
 };
+use crate::ICBitcoinNetwork;
 use crate::{constants::GET_BALANCE_COST_CYCLES, error::WalletError};
 
 pub type WalletResult<T> = Result<T, WalletError>;
@@ -134,4 +135,14 @@ pub fn call_management_with_payment<T: ArgumentEncoder, R: for<'a> ArgumentDecod
     fee: u64,
 ) -> impl Future<Output = CallResult<R>> + Send + Sync {
     call_with_payment(Principal::management_canister(), method, args, fee)
+}
+
+pub fn format_network(network: &str) -> ICBitcoinNetwork {
+    if network == "mainnet" {
+        ICBitcoinNetwork::Mainnet
+    } else if network == "testnet" {
+        ICBitcoinNetwork::Testnet
+    } else {
+        ICBitcoinNetwork::Regtest
+    }
 }

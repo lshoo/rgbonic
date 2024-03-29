@@ -5,6 +5,8 @@ use crate::context::RAW_WALLET;
 pub async fn get_wallet_address() -> String {
     let principal = ic_caller();
 
+    // Get wallet by principal
+
     // let mut wallet = RAW_WALLET.with(|w| w.borrow_mut.);
 
     // let address = base::get_or_create_wallet(&mut wallet, principal).await;
