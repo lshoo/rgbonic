@@ -23,8 +23,6 @@ fn greet(name: String) -> String {
     )
 }
 
-
-
 #[ic_cdk::init]
 fn init(network: String) {
     ic_wasi_polyfill::init(&[0u8; 32], &[]);
@@ -40,7 +38,6 @@ fn init(network: String) {
             .expect("Failed to init network");
 
         state.controllers.insert(ic_caller(), ic_time())
-
     });
 }
 

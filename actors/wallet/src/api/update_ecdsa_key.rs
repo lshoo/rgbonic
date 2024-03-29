@@ -2,6 +2,8 @@ use candid::Principal;
 
 use crate::{context::STATE, domain::Metadata, error::WalletError};
 
+use super::validate_controller_mut;
+
 pub(super) fn serve(
     caller: &Principal,
     new_key: String,
@@ -11,22 +13,23 @@ pub(super) fn serve(
     STATE.with(|s| {
         let mut state = s.borrow_mut();
 
-        match state.controllers.get(caller) {
-            Some(_) => {
-                let metadata = &mut state.metadata;
+        validate_controller_mut(&mut state, caller, |s| {
+            let metadata = &mut s.metadata;
 
-                let md = metadata.get();
-                let current_key = &md.key;
-                if current_key != &old_key {
-                    return Err(WalletError::ECDSAKeyUpdateError);
-                }
+            let md = metadata.get();
+            let current_key = &md.key;
+            if current_key != &old_key {
+                return Err(WalletError::ECDSAKeyUpdateError);
+            }
 
-                metadata.set(Metadata { network: md.network, key: new_key, updated_time }).map_err(|_| WalletError::RegisterECDSAKeyError)?;
-                Ok(true)
-            }
-            None => {
-                Err(WalletError::UnAuthorized(caller.to_string()))
-            }
-        }
+            metadata
+                .set(Metadata {
+                    network: md.network,
+                    key: new_key.clone(),
+                    updated_time,
+                })
+                .map_err(|_| WalletError::RegisterECDSAKeyError)?;
+            Ok(true)
+        })
     })
 }

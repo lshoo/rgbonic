@@ -1,10 +1,8 @@
-use crate::ic_caller;
+use candid::Principal;
 
 use crate::context::STATE;
 
-pub async fn get_wallet_address() -> String {
-    let principal = ic_caller();
-
+pub async fn get_wallet_address(caller: &Principal) -> String {
     STATE.with(|s| {
         let state = s.borrow_mut();
         let metadata = state.metadata.get();
@@ -19,8 +17,6 @@ pub async fn get_wallet_address() -> String {
     // let network = metadata.network;
 
     // Get wallet by principal
-
-    
 
     // let address = base::get_or_create_wallet(&mut wallet, principal).await;
 

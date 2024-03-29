@@ -142,7 +142,6 @@ impl Storable for RawWallet {
     };
 }
 
-
 #[derive(Debug, Clone, CandidType, Deserialize)]
 pub struct UpdateKeyRequest {
     pub new_key: String,

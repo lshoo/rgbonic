@@ -1,4 +1,3 @@
-
 mod get_ecdsa_key;
 mod register_ecdsa_key;
 mod update_ecdsa_key;
@@ -6,13 +5,15 @@ mod update_ecdsa_key;
 use candid::Principal;
 use ic_cdk::{query, update};
 
+use crate::context::{State, STATE};
 use crate::domain::{Metadata, UpdateKeyRequest};
-use crate::context::STATE;
 use crate::error::WalletError;
 
 #[update]
 pub async fn get_wallet_address() -> String {
-    crate::bitcoin::get_wallet_address().await
+    let caller = ic_caller();
+
+    crate::bitcoin::get_wallet_address(&caller).await
 }
 
 #[query]
@@ -50,15 +51,9 @@ fn controller() -> Result<Vec<Principal>, WalletError> {
         let state = s.borrow();
 
         match state.controllers.get(&caller) {
-            Some(_) => {
-                Ok(state.controllers.iter().map(|(k, _)| k).collect())
-            }
-            None => {
-                Err(WalletError::UnAuthorized(caller.to_string()))
-            }
+            Some(_) => Ok(state.controllers.iter().map(|(k, _)| k).collect()),
+            None => Err(WalletError::UnAuthorized(caller.to_string())),
         }
-        
-        
     })
 }
 
@@ -68,4 +63,28 @@ fn ic_caller() -> Principal {
 
 fn ic_time() -> u64 {
     ic_cdk::api::time()
+}
+
+fn validate_controller<F, T>(state: &State, caller: &Principal, f: F) -> Result<T, WalletError>
+where
+    F: FnOnce(&State) -> Result<T, WalletError>,
+{
+    match state.controllers.get(caller) {
+        Some(_) => f(state),
+        None => Err(WalletError::UnAuthorized(caller.to_string())),
+    }
+}
+
+fn validate_controller_mut<F, T>(
+    state: &mut State,
+    caller: &Principal,
+    mut f: F,
+) -> Result<T, WalletError>
+where
+    F: FnMut(&mut State) -> Result<T, WalletError>,
+{
+    match state.controllers.get(caller) {
+        Some(_) => f(state),
+        None => Err(WalletError::UnAuthorized(caller.to_string())),
+    }
 }
