@@ -6,7 +6,27 @@ use candid::{CandidType, Decode, Encode, Principal};
 use ic_stable_structures::{storable::Bound, Storable};
 use serde::Deserialize;
 
-use crate::constants::SELF_CUSTODY_SIZE;
+use crate::constants::{METADATA_SIZE, SELF_CUSTODY_SIZE};
+
+#[derive(Debug, Clone, CandidType, Deserialize, Default)]
+pub struct Metadata {
+    pub network: ICBitcoinNetwork,
+}
+
+impl Storable for Metadata {
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        std::borrow::Cow::Owned(Encode!(self).unwrap())
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+
+    const BOUND: Bound = Bound::Bounded {
+        max_size: METADATA_SIZE as u32,
+        is_fixed_size: false,
+    };
+}
 
 #[derive(Clone, Debug)]
 pub struct Wallet {

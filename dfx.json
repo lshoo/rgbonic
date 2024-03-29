@@ -1,9 +1,9 @@
 {
   "canisters": {
   
-    "rgb": {
-      "candid": "actors/rgb/rgb.did",
-      "package": "rgb",
+    "wallet": {
+      "candid": "actors/wallet/wallet.did",
+      "package": "wallet",
       "type": "rust",
       "target": "wasm32-unkown-unkown"
     },

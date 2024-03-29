@@ -1,0 +1,11 @@
+type BitcoinNetwork = variant { mainnet; regtest; testnet };
+type Metadata = record { network : BitcoinNetwork };
+
+
+service : (text) -> {
+
+  get_wallet_address: () -> (text) query;
+  issue_rgb20 : () -> (text);
+  metadata : () -> (Metadata) query;
+
+}   

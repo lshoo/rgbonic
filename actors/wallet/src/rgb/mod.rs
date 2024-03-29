@@ -2,7 +2,7 @@ use std::convert::Infallible;
 
 use amplify::hex::FromHex;
 use bp::dbc::Method;
-use candid::Principal;
+
 use rgb_schemata::NonInflatableAsset;
 use rgbstd::{
     interface::{IfaceClass, IssuerClass, Rgb20},
@@ -91,11 +91,6 @@ pub fn issue_rgb20() -> String {
         contract.total_supply(),
         ic_cdk::api::instruction_counter(),
     )
-}
-
-#[ic_cdk::init]
-fn init() {
-    ic_wasi_polyfill::init(&[0u8; 32], &[]);
 }
 
 struct DumbResolver;

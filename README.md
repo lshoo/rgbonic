@@ -40,16 +40,16 @@ dfx start --background
 cargo build --release --target wasm32-wasi
 
 # Translate `wasm32-wasi` target to wasm32-unknown-unknown` under the project directory
-wasi2ic ./target/wasm32-wasi/release/rgb.wasm rgb.wasm
+wasi2ic ./target/wasm32-wasi/release/wallet.wasm wallet.wasm
 
-# Create canister for `rgb` if first time 
-dfx canister create rgb
+# Create canister for `wallet` if first time 
+dfx canister create wallet
 
-# Install the new wasm file to IC canister
-dfx canister install --mode reinstall --wasm rgb.wasm rgb
+# Install the new wasm file to IC canister with `regtest` or `testnet` or `mainnet`
+dfx canister install --mode reinstall --wasm wallet.wasm wallet --argument '("regtest")' 
 
 # Call the canister to verify 
-dfx canister call rgb greet "人生只有一件事：修"
+dfx canister call wallet greet "人生只有一件事：修"
 
 ```
 

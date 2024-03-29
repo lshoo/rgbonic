@@ -1,10 +1,10 @@
 use std::cell::RefCell;
 
-use crate::domain::{RawWallet, SelfCustodyKey};
+use crate::domain::{Metadata, RawWallet, SelfCustodyKey};
 
 use ic_stable_structures::{
     memory_manager::{MemoryId, MemoryManager, VirtualMemory},
-    BTreeMap as StableBTreeMap, DefaultMemoryImpl, RestrictedMemory,
+    BTreeMap as StableBTreeMap, Cell as StableCell, DefaultMemoryImpl, RestrictedMemory,
 };
 
 pub type DefMem = DefaultMemoryImpl;
@@ -16,9 +16,19 @@ pub type Memory = VirtualMemory<DefMem>;
 pub type RawWalletStable = StableBTreeMap<SelfCustodyKey, RawWallet, Memory>;
 // pub type StableCell = Cell<RawSelfCustody, Memory>;
 
+const METADATA_PAGES: u64 = 64;
+
 const SELF_CUSTODY_ID: MemoryId = MemoryId::new(1);
 
 thread_local! {
+
+    pub static METADATA: RefCell<StableCell<Metadata, RM>> =
+    RefCell::new(StableCell::init(
+        RM::new(DefMem::default(), 0..METADATA_PAGES),
+        Metadata::default(),
+      ).expect("failed to initialize the metadata cell")
+    );
+
 
     static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> = RefCell::new(
         MemoryManager::init(DefaultMemoryImpl::default())
@@ -30,20 +40,3 @@ thread_local! {
         )
     );
 }
-
-// thread_local! {
-//     // The bitcoin network to connect to.
-//     //
-//     // When developing locally this should be `Regtest`.
-//     // When deploying to the IC this should be `Testnet` or `Mainnet`.
-//     // pub static NETWORK: Cell<BitcoinNetwork> = Cell::new(BitcoinNetwork::Testnet);
-
-//     // // The ECDSA key name.
-//     // pub static KEY_NAME: RefCell<String> = RefCell::new(String::from(""));
-
-//     // // The fiduciary canister.
-//     // pub static FIDUCIARY_ID: RefCell<Option<candid::Principal>> = RefCell::new(None);
-
-//     // The custody wallet.
-//     pub static WALLET: RefCell<common::CustodyData> = RefCell::default();
-// }

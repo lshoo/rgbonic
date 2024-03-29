@@ -5,21 +5,38 @@ pub mod context;
 pub mod domain;
 pub mod rgb;
 
+use crate::context::METADATA;
+use crate::domain::Metadata;
+use base::utils::format_network;
 use candid::Principal;
-use ic_cdk::export_candid;
+use ic_cdk::{export_candid, query};
 
 #[ic_cdk::update]
 fn greet(name: String) -> String {
     format!(
         "Hello, {}, management canister: {:?}",
         name,
-        Principal::management_canister(),
+        Principal::management_canister().to_string(),
     )
 }
 
+#[query]
+fn metadata() -> Metadata {
+    METADATA.with(|m| m.borrow().get().clone())
+}
+
 #[ic_cdk::init]
-fn init() {
+fn init(network: String) {
     ic_wasi_polyfill::init(&[0u8; 32], &[]);
+
+    METADATA.with(|m| {
+        let mut metadata = m.borrow_mut();
+        metadata
+            .set(Metadata {
+                network: format_network(&network),
+            })
+            .expect("Failed to init network")
+    });
 }
 
 #[ic_cdk::update]

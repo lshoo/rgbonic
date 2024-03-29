@@ -1,7 +1,10 @@
 use candid::{CandidType, Decode, Deserialize, Encode};
 use ic_stable_structures::{storable::Bound, Storable};
 
-use crate::{constants::ECDSA_SIZE, ICBitcoinNetwork};
+use crate::{
+    constants::{ECDSA_SIZE, METADATA_SIZE},
+    ICBitcoinNetwork,
+};
 
 #[derive(Debug, Clone, CandidType, Deserialize, Default)]
 pub struct ECDSAKey {
@@ -39,7 +42,7 @@ impl Storable for Metadata {
     }
 
     const BOUND: Bound = Bound::Bounded {
-        max_size: ECDSA_SIZE as u32,
+        max_size: METADATA_SIZE as u32,
         is_fixed_size: false,
     };
 }
