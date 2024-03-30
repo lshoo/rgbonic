@@ -19,4 +19,7 @@ pub enum WalletError {
 
     #[error("No Authorize to {0:?}")]
     UnAuthorized(String),
+
+    #[error("Failed to create wallet {0:?}")]
+    CreateWalletError(String),
 }

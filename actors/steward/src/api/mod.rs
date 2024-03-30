@@ -3,7 +3,7 @@ mod register_ecdsa_key;
 mod update_ecdsa_key;
 mod update_public_key;
 
-use base::utils::format_network;
+use base::utils::validate_network;
 use candid::Principal;
 use ic_cdk::{export_candid, init, query, update};
 
@@ -46,7 +46,7 @@ fn init(network: String) {
         let mut metadata = m.borrow_mut();
         metadata
             .set(Metadata {
-                network: format_network(&network),
+                network: validate_network(&network),
             })
             .expect("Failed to init network")
     });

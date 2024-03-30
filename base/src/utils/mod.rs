@@ -14,6 +14,7 @@ use crate::constants::{
     GET_CURRENT_FEE_PERCENTILES_CYCLES, GET_UTXOS_COST_CYCLES, SEND_TRANSACTION_BASE_CYCLES,
     SEND_TRANSACTION_PER_BYTE_CYCLES,
 };
+use crate::domain::Wallet;
 use crate::ICBitcoinNetwork;
 use crate::{constants::GET_BALANCE_COST_CYCLES, error::Error};
 
@@ -103,13 +104,20 @@ pub async fn send_transaction(transaction: Vec<u8>, network: BitcoinNetwork) -> 
 ///
 pub async fn create_wallet(
     principal: Principal,
-    pk1: &[u8],
-    pk2: &[u8],
-    bitcoin_network: Network,
-) -> WalletResult<Address> {
+    _steward_canister: Principal,
+    bitcoin_network: ICBitcoinNetwork,
+) -> WalletResult<Wallet> {
     if !is_normal_principal(principal) {
         return Err(Error::InvalidPrincipal(principal));
     }
+
+    // Create a new wallet for this principal.
+    // Right now there is only one wallet for each principal,
+    // so the it is derived from the principal itself.
+    let derivation_path = vec![principal.as_slice().to_vec()];
+    
+    let pk1 = todo!();
+    let pk2 = todo!();
 
     let witness_script = bitcoin::blockdata::script::Builder::new()
         .push_int(2)
@@ -122,7 +130,13 @@ pub async fn create_wallet(
     let script_pub_key = ScriptBuf::new_p2wsh(&witness_script.wscript_hash());
 
     // Generate the wallet address from the P2WSH script pubkey
-    bitcoin::Address::from_script(&script_pub_key, bitcoin_network).map_err(|e| e.into())
+    let address = bitcoin::Address::from_script(&script_pub_key, match_network(bitcoin_network)).map_err(Error::from)?;
+
+    Ok(Wallet {
+        witness_script,
+        derivation_path,
+        address,
+    })
 }
 
 pub fn is_normal_principal(principal: Principal) -> bool {
@@ -137,12 +151,22 @@ pub fn call_management_with_payment<T: ArgumentEncoder, R: for<'a> ArgumentDecod
     call_with_payment(Principal::management_canister(), method, args, fee)
 }
 
-pub fn format_network(network: &str) -> ICBitcoinNetwork {
+pub fn validate_network(network: &str) -> ICBitcoinNetwork {
     if network == "mainnet" {
         ICBitcoinNetwork::Mainnet
     } else if network == "testnet" {
         ICBitcoinNetwork::Testnet
     } else {
         ICBitcoinNetwork::Regtest
+    }
+}
+
+// Utility function to translate the bitcoin network from the IC cdk 
+// to the bitoin network of the rust-bitcoin library.
+fn match_network(bitcoin_network: BitcoinNetwork) -> Network {
+    match bitcoin_network {
+        BitcoinNetwork::Mainnet => Network::Bitcoin,
+        BitcoinNetwork::Testnet => Network::Testnet,
+        BitcoinNetwork::Regtest => Network::Regtest,
     }
 }

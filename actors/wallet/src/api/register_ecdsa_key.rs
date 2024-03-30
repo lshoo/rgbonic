@@ -20,6 +20,7 @@ pub(super) fn serve(
                 metadata
                     .set(Metadata {
                         network: md.network,
+                        steward_canister: md.steward_canister,
                         key: key.clone(),
                         updated_time,
                     })

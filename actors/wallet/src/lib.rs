@@ -6,11 +6,13 @@ pub mod domain;
 pub mod error;
 pub mod rgb;
 
+use std::str::FromStr;
+
 use crate::context::STATE;
 use crate::domain::{Metadata, UpdateKeyRequest};
 use crate::error::WalletError;
 
-use base::utils::format_network;
+use base::utils::validate_network;
 use candid::Principal;
 use ic_cdk::export_candid;
 
@@ -24,7 +26,7 @@ fn greet(name: String) -> String {
 }
 
 #[ic_cdk::init]
-fn init(network: String) {
+fn init(network: String, steward_canister: String) {
     ic_wasi_polyfill::init(&[0u8; 32], &[]);
 
     STATE.with(|m| {
@@ -32,7 +34,9 @@ fn init(network: String) {
         let metadata = &mut state.metadata;
         metadata
             .set(Metadata {
-                network: format_network(&network),
+                network: validate_network(&network),
+                steward_canister: Principal::from_str(&steward_canister)
+                    .expect("Failed to parse steward canister id"),
                 ..Default::default()
             })
             .expect("Failed to init network");

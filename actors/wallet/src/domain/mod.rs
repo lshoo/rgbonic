@@ -8,11 +8,23 @@ use serde::Deserialize;
 
 use crate::constants::{METADATA_SIZE, SELF_CUSTODY_SIZE};
 
-#[derive(Debug, Clone, CandidType, Deserialize, Default)]
+#[derive(Debug, Clone, CandidType, Deserialize)]
 pub struct Metadata {
     pub network: ICBitcoinNetwork,
+    pub steward_canister: Principal,
     pub key: String,
     pub updated_time: u64,
+}
+
+impl Default for Metadata {
+    fn default() -> Self {
+        Self {
+            steward_canister: Principal::anonymous(),
+            network: ICBitcoinNetwork::Regtest,
+            key: String::new(),
+            updated_time: 0,
+        }
+    }
 }
 
 impl Storable for Metadata {
@@ -30,19 +42,11 @@ impl Storable for Metadata {
     };
 }
 
-#[derive(Clone, Debug)]
-pub struct Wallet {
-    // The witness script of the 2-of-2 multisig wallet.
-    pub witness_script: ScriptBuf,
-    // The wallet address.
-    pub address: Address,
-    // The derivation path of the wallet, derived from the user's principal.
-    pub derivation_path: Vec<Vec<u8>>,
-}
+pub type Wallet = base::domain::Wallet;
 
 #[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct RawWallet {
-    pub witness_scripte: Vec<u8>,
+    pub witness_script: Vec<u8>,
     pub address: String,
     pub derivation_path: Vec<Vec<u8>>,
 }
@@ -50,8 +54,18 @@ pub struct RawWallet {
 impl From<RawWallet> for Wallet {
     fn from(wallet: RawWallet) -> Self {
         Self {
-            witness_script: ScriptBuf::from_bytes(wallet.witness_scripte),
+            witness_script: ScriptBuf::from_bytes(wallet.witness_script),
             address: Address::from_str(&wallet.address).unwrap().assume_checked(),
+            derivation_path: wallet.derivation_path,
+        }
+    }
+}
+
+impl From<Wallet> for RawWallet {
+    fn from(wallet: Wallet) -> Self {
+        Self {
+            witness_script: ScriptBuf::into_bytes(wallet.witness_script),
+            address: wallet.address.to_string(),
             derivation_path: wallet.derivation_path,
         }
     }
@@ -69,7 +83,7 @@ pub struct SelfCustody {
 #[derive(Clone, Debug, CandidType, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SelfCustodyKey {
     pub network: ICBitcoinNetwork,
-    pub key_name: String,
+    pub owner: Principal,
     pub steward_canister: Principal,
 }
 

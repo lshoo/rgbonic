@@ -13,7 +13,7 @@ use crate::error::WalletError;
 pub async fn get_wallet_address() -> String {
     let caller = ic_caller();
 
-    crate::bitcoin::get_wallet_address(&caller).await
+    crate::bitcoin::get_wallet_address(caller).await
 }
 
 #[query]
