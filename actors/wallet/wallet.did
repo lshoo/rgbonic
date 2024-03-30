@@ -1,10 +1,21 @@
 type BitcoinNetwork = variant { mainnet; regtest; testnet };
 type Metadata = record { network : BitcoinNetwork };
 
+type WalletError = variant {
+    ECDSAKeyAlreadyExists : text;
+    ECDSAKeyNotFound : text;
+    ECDSAKeyUpdateError;
+    RegisterECDSAKeyError;
+    NetworkAlreadyExists;
+    UnAuthorized : text;
+    CreateWalletError : text
+};
+
+type StringResult = variant { Ok : text; Err : WalletError };
 
 service : (text) -> {
 
-  get_wallet_address: () -> (text) query;
+  get_wallet_address: () -> (StringResult) query;
   issue_rgb20 : () -> (text);
   metadata : () -> (Metadata) query;
 

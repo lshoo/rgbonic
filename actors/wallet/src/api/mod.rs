@@ -10,7 +10,7 @@ use crate::domain::{Metadata, UpdateKeyRequest};
 use crate::error::WalletError;
 
 #[update]
-pub async fn get_wallet_address() -> String {
+pub async fn get_wallet_address() -> Result<String, WalletError> {
     let caller = ic_caller();
 
     crate::bitcoin::get_wallet_address(caller).await

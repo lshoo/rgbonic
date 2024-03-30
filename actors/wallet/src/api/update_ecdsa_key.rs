@@ -17,7 +17,7 @@ pub(super) fn serve(
             let metadata = &mut s.metadata;
 
             let md = metadata.get();
-            let current_key = &md.key;
+            let current_key = &md.key_name;
             if current_key != &old_key {
                 return Err(WalletError::ECDSAKeyUpdateError);
             }
@@ -26,7 +26,7 @@ pub(super) fn serve(
                 .set(Metadata {
                     network: md.network,
                     steward_canister: md.steward_canister,
-                    key: new_key.clone(),
+                    key_name: new_key.clone(),
                     updated_time,
                 })
                 .map_err(|_| WalletError::RegisterECDSAKeyError)?;

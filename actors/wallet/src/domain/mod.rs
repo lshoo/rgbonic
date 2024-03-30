@@ -1,4 +1,4 @@
-use std::{collections::HashMap, str::FromStr};
+use std::str::FromStr;
 
 use base::ICBitcoinNetwork;
 use bitcoin::{Address, ScriptBuf};
@@ -12,7 +12,7 @@ use crate::constants::{METADATA_SIZE, SELF_CUSTODY_SIZE};
 pub struct Metadata {
     pub network: ICBitcoinNetwork,
     pub steward_canister: Principal,
-    pub key: String,
+    pub key_name: String,
     pub updated_time: u64,
 }
 
@@ -21,7 +21,7 @@ impl Default for Metadata {
         Self {
             steward_canister: Principal::anonymous(),
             network: ICBitcoinNetwork::Regtest,
-            key: String::new(),
+            key_name: String::new(),
             updated_time: 0,
         }
     }
@@ -71,14 +71,14 @@ impl From<Wallet> for RawWallet {
     }
 }
 
-/// Included a Self Custody wallet data to sign transaction
-#[derive(Clone, Debug)]
-pub struct SelfCustody {
-    pub network: ICBitcoinNetwork,
-    pub key_name: String,
-    pub steward_canister: Principal,
-    pub wallets: HashMap<Principal, Wallet>,
-}
+// /// Included a Self Custody wallet data to sign transaction
+// #[derive(Clone, Debug)]
+// pub struct SelfCustody {
+//     pub network: ICBitcoinNetwork,
+//     pub key_name: String,
+//     pub steward_canister: Principal,
+//     pub wallets: HashMap<Principal, Wallet>,
+// }
 
 #[derive(Clone, Debug, CandidType, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SelfCustodyKey {
@@ -86,45 +86,6 @@ pub struct SelfCustodyKey {
     pub owner: Principal,
     pub steward_canister: Principal,
 }
-
-// #[derive(Clone, nDebug, CandidType, Deserialize)]
-// pub struct RawSelfCustody {
-//     pub network: ICBitcoinNetwork,
-//     pub key_name: String,
-//     pub steward_canister: Principal,
-//     pub wallets: HashMap<Principal, RawWallet>,
-// }
-
-// impl From<RawSelfCustody> for SelfCustody {
-//     fn from(custody: RawSelfCustody) -> Self {
-//         Self {
-//             network: custody.network,
-//             key_name: custody.key_name,
-//             steward_canister: custody.steward_canister,
-//             // TODO: FIX ME for large size
-//             wallets: custody
-//                 .wallets
-//                 .into_iter()
-//                 .map(|(k, v)| (k, v.into()))
-//                 .collect(),
-//         }
-//     }
-// }
-
-// impl Storable for RawSelfCustody {
-//     fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
-//         std::borrow::Cow::Owned(Encode!(self).unwrap())
-//     }
-
-//     fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
-//         Decode!(bytes.as_ref(), Self).unwrap()
-//     }
-
-//     const BOUND: Bound = Bound::Bounded {
-//         max_size: SELF_CUSTODY_SIZE as u32,
-//         is_fixed_size: false,
-//     };
-// }
 
 impl Storable for SelfCustodyKey {
     fn to_bytes(&self) -> std::borrow::Cow<[u8]> {

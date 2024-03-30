@@ -15,13 +15,13 @@ pub(super) fn serve(
         validate_controller_mut(&mut state, caller, |s| {
             let metadata = &mut s.metadata;
 
-            if metadata.get().key.is_empty() {
+            if metadata.get().key_name.is_empty() {
                 let md = metadata.get();
                 metadata
                     .set(Metadata {
                         network: md.network,
                         steward_canister: md.steward_canister,
-                        key: key.clone(),
+                        key_name: key.clone(),
                         updated_time,
                     })
                     .map_err(|_| WalletError::RegisterECDSAKeyError)?;
