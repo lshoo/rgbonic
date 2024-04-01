@@ -8,8 +8,9 @@ use crate::{
 };
 
 /// Get an exist address, or generate a new address by caller
+/// Returns a address if success, or returns `CreateWalletFailed`
 /// TODO: support multiple addresses
-pub async fn get_wallet_address(caller: Principal) -> Result<String, WalletError> {
+pub async fn get_or_create_wallet_address(caller: Principal) -> Result<String, WalletError> {
     let (raw_wallet, wallet_key, network, steward_canister, key_name) =
         get_wallet_key_network_steward(caller);
 

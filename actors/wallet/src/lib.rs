@@ -9,21 +9,12 @@ pub mod rgb;
 use std::str::FromStr;
 
 use crate::context::STATE;
-use crate::domain::{Metadata, UpdateKeyRequest};
+use crate::domain::{request::UpdateKeyRequest, response::NetworkResponse, Metadata};
 use crate::error::WalletError;
 
 use base::utils::validate_network;
 use candid::Principal;
 use ic_cdk::export_candid;
-
-#[ic_cdk::update]
-fn greet(name: String) -> String {
-    format!(
-        "Hello, {}, management canister: {:?}",
-        name,
-        Principal::management_canister().to_string(),
-    )
-}
 
 #[ic_cdk::init]
 fn init(network: String, steward_canister: String, key_name: String) {

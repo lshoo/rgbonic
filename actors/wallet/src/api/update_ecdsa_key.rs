@@ -19,7 +19,7 @@ pub(super) fn serve(
             let md = metadata.get();
             let current_key = &md.key_name;
             if current_key != &old_key {
-                return Err(WalletError::ECDSAKeyUpdateError);
+                return Err(WalletError::UnAuthorized("old key invalid".to_string()));
             }
 
             metadata
@@ -29,7 +29,7 @@ pub(super) fn serve(
                     key_name: new_key.clone(),
                     updated_time,
                 })
-                .map_err(|_| WalletError::RegisterECDSAKeyError)?;
+                .map_err(|_| WalletError::ECDSAKeyUpdateError)?;
             Ok(true)
         })
     })

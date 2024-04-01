@@ -1,3 +1,6 @@
+pub mod request;
+pub mod response;
+
 use std::str::FromStr;
 
 use base::ICBitcoinNetwork;
@@ -71,15 +74,6 @@ impl From<Wallet> for RawWallet {
     }
 }
 
-// /// Included a Self Custody wallet data to sign transaction
-// #[derive(Clone, Debug)]
-// pub struct SelfCustody {
-//     pub network: ICBitcoinNetwork,
-//     pub key_name: String,
-//     pub steward_canister: Principal,
-//     pub wallets: HashMap<Principal, Wallet>,
-// }
-
 #[derive(Clone, Debug, CandidType, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SelfCustodyKey {
     pub network: ICBitcoinNetwork,
@@ -115,10 +109,4 @@ impl Storable for RawWallet {
         max_size: SELF_CUSTODY_SIZE as u32,
         is_fixed_size: false,
     };
-}
-
-#[derive(Debug, Clone, CandidType, Deserialize)]
-pub struct UpdateKeyRequest {
-    pub new_key: String,
-    pub old_key: String,
 }

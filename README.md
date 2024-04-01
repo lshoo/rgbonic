@@ -38,15 +38,21 @@ dfx start --background
 
 # Compile the project with `wasm-wasi` inside the project folder
 cargo build --release --target wasm32-wasi
+# or 
+just build_wallet
 
 # Translate `wasm32-wasi` target to wasm32-unknown-unknown` under the project directory
 wasi2ic ./target/wasm32-wasi/release/wallet.wasm wallet.wasm
+# or 
+just translate_wasm
 
 # Create canister for `wallet` if first time 
 dfx canister create wallet
 
 # Install the new wasm file to IC canister with `regtest` or `testnet` or `mainnet`
 dfx canister install --mode reinstall --wasm wallet.wasm wallet --argument '("regtest")' 
+# or
+just install wallet
 
 # Call the canister to verify 
 dfx canister call wallet greet "人生只有一件事：修"
