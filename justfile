@@ -1,3 +1,9 @@
+deploy_os:
+    dfx deploy os
+
+deploy_steward:
+    dfx deploy steward --argument '("regtest")'
+
 build_wallet:   
     cargo build -p wallet --release --target wasm32-wasi
 

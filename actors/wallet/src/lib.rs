@@ -14,6 +14,7 @@ use crate::error::WalletError;
 
 use base::utils::validate_network;
 use candid::Principal;
+use ic_cdk::api::management_canister::bitcoin::Satoshi;
 use ic_cdk::export_candid;
 
 #[ic_cdk::init]
