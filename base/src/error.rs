@@ -31,6 +31,15 @@ pub enum Error {
 
     #[error("Failed to update ECDSA key")]
     ECDSAKeyUpdateError,
+
+    #[error("Amount is not match with address amount")]
+    AmountsAndAddressesMismatch,
+
+    #[error("Transaction amount less than dust")]
+    AmountLessThanDust,
+
+    #[error("Insufficient funds")]
+    InsufficientFunds,
 }
 
 impl From<(ic_cdk::api::call::RejectionCode, String)> for Error {

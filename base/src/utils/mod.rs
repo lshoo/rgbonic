@@ -2,18 +2,17 @@ use std::future::Future;
 use std::str::FromStr;
 
 use bitcoin::secp256k1::PublicKey;
-use bitcoin::{Address, Network, ScriptBuf};
+use bitcoin::{consensus, Address, Amount, Network, ScriptBuf};
 use candid::utils::{ArgumentDecoder, ArgumentEncoder};
 use candid::Principal;
 use ic_cdk::api::call::{call_with_payment, CallResult};
 use ic_cdk::api::management_canister::bitcoin::{
-    BitcoinNetwork, GetBalanceRequest, GetCurrentFeePercentilesRequest, GetUtxosRequest,
-    GetUtxosResponse, MillisatoshiPerByte, Satoshi, SendTransactionRequest, Utxo,
+    BitcoinNetwork, GetBalanceRequest, MillisatoshiPerByte, Satoshi, SendTransactionRequest, Utxo,
 };
 
 use crate::constants::{
-    DEFAULT_FEE_MILLI_SATOSHI, GET_CURRENT_FEE_PERCENTILES_CYCLES, GET_UTXOS_COST_CYCLES,
-    SEND_TRANSACTION_BASE_CYCLES, SEND_TRANSACTION_PER_BYTE_CYCLES,
+    DEFAULT_FEE_MILLI_SATOSHI, DUST_AMOUNT_SATOSHI, SEND_TRANSACTION_BASE_CYCLES,
+    SEND_TRANSACTION_PER_BYTE_CYCLES,
 };
 use crate::domain::Wallet;
 use crate::tx::TransactionInfo;
@@ -45,12 +44,21 @@ pub async fn balance(
 }
 
 /// Build an unsigned transaction for the given amount, network, address
-pub async fn build_unsigned_transaction(
+/// Auto choose the utxos to spend
+pub async fn build_unsigned_transaction_auto(
     wallet: Wallet,
-    amount: Satoshi,
-    receive_address: String,
+    amounts: &[Satoshi],
+    receiver_addresses: &[&str],
     network: ICBitcoinNetwork,
 ) -> BaseResult<TransactionInfo> {
+    if amounts.len() != receiver_addresses.len() {
+        return Err(Error::AmountsAndAddressesMismatch);
+    }
+
+    if amounts.iter().any(|amount| *amount < DUST_AMOUNT_SATOSHI) {
+        return Err(Error::AmountLessThanDust);
+    }
+
     let fee_percentiles = bitcoins::get_current_fee_percentiles(network).await?;
 
     let fee_per_byte = if fee_percentiles.is_empty() {
@@ -67,27 +75,101 @@ pub async fn build_unsigned_transaction(
         .await?
         .utxos;
 
-    let receive_address = Address::from_str(&receive_address)
-        .map_err(|e| Error::BitcoinAddressError(e.to_string()))
-        .and_then(|address| {
-            address
-                .require_network(match_network(network))
-                .map_err(|e| e.into())
-        })?;
+    let receiver_addresses: Result<Vec<Address>, Error> = receiver_addresses
+        .iter()
+        .map(|address| {
+            Address::from_str(address)
+                .map_err(|e| Error::BitcoinAddressError(e.to_string()))
+                .and_then(|address| {
+                    address
+                        .require_network(match_network(network))
+                        .map_err(|e| e.into())
+                })
+        })
+        .collect();
+
+    let receiver_addresses = receiver_addresses?;
 
     // Build transaction
-    build_transaction(wallet, &utxos, &receive_address, amount, fee_per_byte).await
+    build_transaction_auto(
+        &wallet,
+        &utxos,
+        receiver_addresses.as_slice(),
+        amounts,
+        fee_per_byte,
+    )
+    .await
 }
 
-async fn build_transaction(
-    wallet: Wallet,
+/// Build a transaction with the given wallet, amount of `sathoshi`, utxos, receiver_address, fee_per_byte
+/// Auto choose the utxos to spend
+async fn build_transaction_auto(
+    wallet: &Wallet,
     utxos: &[Utxo],
-    receive_address: &Address,
-    amount: Satoshi,
+    receiver_addresses: &[Address],
+    amounts: &[Satoshi],
     fee_per_byte: MillisatoshiPerByte,
 ) -> BaseResult<TransactionInfo> {
+    ic_cdk::print("Building transaction ... \n");
+
+    let mut total_fee = 0;
+
+    loop {
+        let transaction_info =
+            build_transaction_with_fee_auto(wallet, utxos, receiver_addresses, amounts, total_fee)?;
+
+        // Calc the transaction size and fee is match use fake signing the transaction.
+        let signed_transaction = fake_both_signatures(&transaction_info).tx;
+        let signed_tx_bytes_len = consensus::serialize(&signed_transaction).len() as u64;
+
+        if (signed_tx_bytes_len * fee_per_byte) / 1000 >= total_fee {
+            ic_cdk::print(format!("Transaction built with fee: {total_fee:?}."));
+
+            return Ok(transaction_info);
+        } else {
+            total_fee = (signed_tx_bytes_len * fee_per_byte) / 1000
+        }
+    }
+}
+
+/// Build a transaction with the given wallet, amount of `sathoshi`, utxos, receiver_address, fee
+/// auto choose utxos to spend
+fn build_transaction_with_fee_auto(
+    wallet: &Wallet,
+    utxos: &[Utxo],
+    receiver_addresses: &[Address],
+    amounts: &[Satoshi],
+    fee: u64,
+) -> BaseResult<TransactionInfo> {
+    let mut utxos_to_spend = vec![];
+    let mut input_amounts = vec![];
+    let mut total_spent = 0;
+    let total_amount: Satoshi = amounts.iter().sum();
+
+    for utxo in utxos.iter().rev() {
+        total_spent += utxo.value;
+        utxos_to_spend.push(utxo);
+        input_amounts.push(Amount::from_sat(utxo.value));
+
+        // Auto choose the utxos to spend when the amount is enough
+        if total_spent >= total_amount + fee {
+            break;
+        }
+    }
+
+    if total_spent < total_amount + fee {
+        return Err(Error::InsufficientFunds);
+    }
+
+    // build the tx inputs from the utxos.
+
     todo!()
 }
+
+fn fake_both_signatures(transaction_info: &TransactionInfo) -> TransactionInfo {
+    todo!()
+}
+
 /// Sends a transaction to bitcoin network
 ///
 /// NOTE: Relies on the `bitcoin_send_transaction` endpoint.

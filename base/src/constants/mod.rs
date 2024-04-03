@@ -1,5 +1,6 @@
 /// The default bitcoin fee in millisatoshi per byte
 pub const DEFAULT_FEE_MILLI_SATOSHI: u64 = 2000;
+pub const DUST_AMOUNT_SATOSHI: u64 = 546;
 
 /// The fees for the various bitcoin endpoints.
 pub const GET_BALANCE_COST_CYCLES: u64 = 100_000_000;
