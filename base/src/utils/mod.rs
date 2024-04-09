@@ -1,8 +1,13 @@
 use std::future::Future;
 use std::str::FromStr;
 
+use bitcoin::absolute::LockTime;
+use bitcoin::hashes::Hash;
 use bitcoin::secp256k1::PublicKey;
-use bitcoin::{consensus, Address, Amount, Network, ScriptBuf};
+use bitcoin::{
+    consensus, sighash, Address, Amount, Network, OutPoint, ScriptBuf, SegwitV0Sighash, Sequence,
+    Transaction, TxIn, TxOut, Txid, Witness,
+};
 use candid::utils::{ArgumentDecoder, ArgumentEncoder};
 use candid::Principal;
 use ic_cdk::api::call::{call_with_payment, CallResult};
@@ -12,7 +17,7 @@ use ic_cdk::api::management_canister::bitcoin::{
 
 use crate::constants::{
     DEFAULT_FEE_MILLI_SATOSHI, DUST_AMOUNT_SATOSHI, SEND_TRANSACTION_BASE_CYCLES,
-    SEND_TRANSACTION_PER_BYTE_CYCLES,
+    SEND_TRANSACTION_PER_BYTE_CYCLES, SIG_HASH_TYPE,
 };
 use crate::domain::Wallet;
 use crate::tx::TransactionInfo;
@@ -119,7 +124,7 @@ async fn build_transaction_auto(
             build_transaction_with_fee_auto(wallet, utxos, receiver_addresses, amounts, total_fee)?;
 
         // Calc the transaction size and fee is match use fake signing the transaction.
-        let signed_transaction = fake_both_signatures(&transaction_info).tx;
+        let signed_transaction = simulate_signatures(&transaction_info)?.tx;
         let signed_tx_bytes_len = consensus::serialize(&signed_transaction).len() as u64;
 
         if (signed_tx_bytes_len * fee_per_byte) / 1000 >= total_fee {
@@ -162,12 +167,114 @@ fn build_transaction_with_fee_auto(
     }
 
     // build the tx inputs from the utxos.
+    let inputs: Result<Vec<TxIn>, Error> = utxos_to_spend
+        .into_iter()
+        .map(|utxo| {
+            Ok(TxIn {
+                previous_output: OutPoint {
+                    txid: Txid::from_raw_hash(
+                        Hash::from_slice(&utxo.outpoint.txid)
+                            .map_err(|e| Error::TransactionHashError(e.to_string()))?,
+                    ),
+                    vout: utxo.outpoint.vout,
+                },
+                sequence: Sequence::MAX,
+                witness: Witness::new(),
+                script_sig: ScriptBuf::new(),
+            })
+        })
+        .collect();
 
-    todo!()
+    // build the tx outputs
+    let mut outputs: Vec<TxOut> = receiver_addresses
+        .iter()
+        .zip(amounts)
+        .map(|(address, amount)| TxOut {
+            script_pubkey: address.script_pubkey(),
+            value: Amount::from_sat(*amount),
+        })
+        .collect();
+
+    let remaining_amount = total_spent - total_amount - fee;
+
+    if remaining_amount >= DUST_AMOUNT_SATOSHI {
+        outputs.push(TxOut {
+            script_pubkey: wallet.address.script_pubkey(),
+            value: Amount::from_sat(remaining_amount),
+        })
+    }
+
+    let transaction = Transaction {
+        input: inputs?,
+        output: outputs,
+        lock_time: LockTime::ZERO,
+        version: bitcoin::blockdata::transaction::Version::ONE,
+    };
+
+    let sig_hashes =
+        build_transaction_sighashes(&transaction, &wallet.witness_script, input_amounts.clone());
+
+    TransactionInfo::new(transaction, wallet.witness_script.clone(), sig_hashes?)
 }
 
-fn fake_both_signatures(transaction_info: &TransactionInfo) -> TransactionInfo {
-    todo!()
+/// Simulatethe signatures for the given tx
+fn simulate_signatures(tx_info: &TransactionInfo) -> BaseResult<TransactionInfo> {
+    let mut tx = tx_info.tx.clone();
+
+    for input in tx.input.iter_mut() {
+        // Clear exists witness
+        input.witness.clear();
+
+        let sign = vec![255; 64];
+
+        // Convert signature to DER format
+        let mut der_sign = sign_to_der(sign);
+        der_sign.push(SIG_HASH_TYPE.to_u32() as u8);
+
+        // Update the signature to the witness
+        input.witness.push(vec![]); // Placeholder for scriptSig
+        input.witness.push(der_sign.clone());
+        input.witness.push(der_sign);
+        input
+            .witness
+            .push(tx_info.witness_script.clone().into_bytes());
+    }
+
+    TransactionInfo::new(
+        tx,
+        tx_info.witness_script.clone(),
+        tx_info.sig_hashes.clone(),
+    )
+}
+
+/// Compute the sighashes for the given transaction
+fn build_transaction_sighashes(
+    transaction: &Transaction,
+    witness_script: &ScriptBuf,
+    amounts: Vec<Amount>,
+) -> BaseResult<Vec<SegwitV0Sighash>> {
+    if transaction.input.len() != amounts.len() {
+        return Err(Error::AmountsAndAddressesMismatch);
+    }
+
+    let mut cache = sighash::SighashCache::new(transaction);
+
+    transaction
+        .input
+        .iter()
+        .enumerate()
+        .zip(amounts)
+        .map(|((input_idx, _), amount)| {
+            cache
+                .p2wsh_signature_hash(
+                    input_idx,
+                    witness_script,
+                    amount,
+                    bitcoin::EcdsaSighashType::All,
+                )
+                .map_err(|e| Error::P2wshSigHashError(e.to_string()))
+        })
+        .collect()
 }
 
 /// Sends a transaction to bitcoin network
@@ -190,7 +297,6 @@ pub async fn send_transaction(transaction: Vec<u8>, network: BitcoinNetwork) -> 
 }
 
 /// Create wallet for a given Principal, pk1, pk2 and bitcoin network
-///
 pub async fn create_wallet(
     principal: Principal,
     steward_canister: Principal,
@@ -271,4 +377,42 @@ fn match_network(bitcoin_network: BitcoinNetwork) -> Network {
         BitcoinNetwork::Testnet => Network::Testnet,
         BitcoinNetwork::Regtest => Network::Regtest,
     }
+}
+
+pub fn check_tx_hashes(transaction: &Transaction, sig_hashes: &[SegwitV0Sighash]) -> bool {
+    transaction.input.len() == sig_hashes.len()
+}
+
+// Converts a SEC1 ECDSA signature to the DER format.
+fn sign_to_der(sign: Vec<u8>) -> Vec<u8> {
+    let r: Vec<u8> = if sign[0] & 0x80 != 0 {
+        // r is negative. Prepend a zero byte.
+        let mut tmp = vec![0x00];
+        tmp.extend(sign[..32].to_vec());
+        tmp
+    } else {
+        // r is positive.
+        sign[..32].to_vec()
+    };
+
+    let s: Vec<u8> = if sign[32] & 0x80 != 0 {
+        // s is negative. Prepend a zero byte.
+        let mut tmp = vec![0x00];
+        tmp.extend(sign[32..].to_vec());
+        tmp
+    } else {
+        // s is positive.
+        sign[32..].to_vec()
+    };
+
+    // Convert signature to DER.
+    vec![
+        vec![0x30, 4 + r.len() as u8 + s.len() as u8, 0x02, r.len() as u8],
+        r,
+        vec![0x02, s.len() as u8],
+        s,
+    ]
+    .into_iter()
+    .flatten()
+    .collect()
 }

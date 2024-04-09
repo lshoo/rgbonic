@@ -35,6 +35,15 @@ pub enum Error {
     #[error("Amount is not match with address amount")]
     AmountsAndAddressesMismatch,
 
+    #[error("Transaction and signatures mismatch")]
+    TransactionAndSignaturesMismatch,
+
+    #[error("Transaction hash error: {0:?}")]
+    TransactionHashError(String),
+
+    #[error("P2wshSigHash error: {0:?}")]
+    P2wshSigHashError(String),
+
     #[error("Transaction amount less than dust")]
     AmountLessThanDust,
 
