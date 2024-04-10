@@ -354,17 +354,37 @@ pub async fn sign_transaction(
     derivation_path: &[Vec<u8>],
     signature_index: MultiSigIndex,
 ) -> BaseResult<TransactionInfo> {
-    let (mut tx, sig_hashes) = (tx_info.tx, tx_info.sig_hashes);
+    let (mut tx, sig_hashes) = (tx_info.tx, tx_info.sig_hashes.clone());
 
-    for ((index, tx_in), sign) in tx.input.iter_mut().enumerate().zip(sig_hashes) {
+    for (tx_in, sighash) in tx.input.iter_mut().zip(sig_hashes) {
         // Clear the witness script if the index is first signature index
         if signature_index == MultiSigIndex::First {
             tx_in.witness.clear();
             tx_in.witness.push(vec![]);
         }
+
+        let sign = ecdsa::sign_with_ecdsa(
+            key_name,
+            derivation_path.to_owned(),
+            sighash.to_byte_array().to_vec(),
+        )
+        .await;
+
+        // Convert signature to DER format
+        let mut der_signature = sign_to_der(sign?);
+        der_signature.push(SIG_HASH_TYPE.to_u32() as u8);
+
+        tx_in.witness.push(der_signature);
+
+        // Add witness script if the index is second
+        if signature_index == MultiSigIndex::Second {
+            tx_in
+                .witness
+                .push(tx_info.witness_script.clone().into_bytes());
+        }
     }
 
-    todo!()
+    TransactionInfo::new(tx, tx_info.witness_script.clone(), tx_info.sig_hashes)
 }
 
 /// Check a principal is a normal principal or not
