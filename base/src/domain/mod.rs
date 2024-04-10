@@ -36,3 +36,12 @@ pub enum EcdsaCurve {
     #[serde(rename = "secp256k1")]
     Secp256k1,
 }
+
+/// 2-2 MultiSignature a transaction will contains 2 signatures,
+/// the first signature is the wallet sign, the second signature is the steward sign
+/// the sequcence is [wallet_signature, steward_signature]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum MultiSigIndex {
+    First,  // For `Wallet` canister
+    Second, // For `Steward` canister
+}

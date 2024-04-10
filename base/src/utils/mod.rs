@@ -19,7 +19,7 @@ use crate::constants::{
     DEFAULT_FEE_MILLI_SATOSHI, DUST_AMOUNT_SATOSHI, SEND_TRANSACTION_BASE_CYCLES,
     SEND_TRANSACTION_PER_BYTE_CYCLES, SIG_HASH_TYPE,
 };
-use crate::domain::Wallet;
+use crate::domain::{MultiSigIndex, Wallet};
 use crate::tx::TransactionInfo;
 use crate::{bitcoins, ecdsa, ICBitcoinNetwork};
 use crate::{constants::GET_BALANCE_COST_CYCLES, error::Error};
@@ -87,7 +87,7 @@ pub async fn build_unsigned_transaction_auto(
                 .map_err(|e| Error::BitcoinAddressError(e.to_string()))
                 .and_then(|address| {
                     address
-                        .require_network(match_network(network))
+                        .require_network(to_bitcoin_network(network))
                         .map_err(|e| e.into())
                 })
         })
@@ -296,16 +296,14 @@ pub async fn send_transaction(transaction: Vec<u8>, network: BitcoinNetwork) -> 
         .map_err(|e| e.into())
 }
 
-/// Create wallet for a given Principal, pk1, pk2 and bitcoin network
+/// Create wallet for a given Principal, steward_canister, bitcoin network and key_name
 pub async fn create_wallet(
     principal: Principal,
     steward_canister: Principal,
     bitcoin_network: ICBitcoinNetwork,
     key_name: String,
 ) -> BaseResult<Wallet> {
-    if !is_normal_principal(principal) {
-        return Err(Error::InvalidPrincipal(principal));
-    }
+    check_normal_principal(principal)?;
 
     // Create a new wallet for this principal.
     // Right now there is only one wallet for each principal,
@@ -337,8 +335,9 @@ pub async fn create_wallet(
     let script_pub_key = ScriptBuf::new_p2wsh(&witness_script.wscript_hash());
 
     // Generate the wallet address from the P2WSH script pubkey
-    let address = bitcoin::Address::from_script(&script_pub_key, match_network(bitcoin_network))
-        .map_err(Error::from)?;
+    let address =
+        bitcoin::Address::from_script(&script_pub_key, to_bitcoin_network(bitcoin_network))
+            .map_err(Error::from)?;
 
     Ok(Wallet {
         witness_script,
@@ -347,10 +346,38 @@ pub async fn create_wallet(
     })
 }
 
-pub fn is_normal_principal(principal: Principal) -> bool {
-    principal != Principal::management_canister() && Principal::anonymous() != principal
+/// Signature a transaction with given key and derivation path
+/// Warning: this functions assumes that the sender is the P2WSH address.
+pub async fn sign_transaction(
+    tx_info: TransactionInfo,
+    key_name: &str,
+    derivation_path: &[Vec<u8>],
+    signature_index: MultiSigIndex,
+) -> BaseResult<TransactionInfo> {
+    let (mut tx, sig_hashes) = (tx_info.tx, tx_info.sig_hashes);
+
+    for ((index, tx_in), sign) in tx.input.iter_mut().enumerate().zip(sig_hashes) {
+        // Clear the witness script if the index is first signature index
+        if signature_index == MultiSigIndex::First {
+            tx_in.witness.clear();
+            tx_in.witness.push(vec![]);
+        }
+    }
+
+    todo!()
 }
 
+/// Check a principal is a normal principal or not
+/// Returns an error if the principal is not a normal principal
+pub fn check_normal_principal(principal: Principal) -> Result<(), Error> {
+    if principal != Principal::management_canister() && Principal::anonymous() != principal {
+        Ok(())
+    } else {
+        Err(Error::InvalidPrincipal(principal))
+    }
+}
+
+/// A helper function to call management canister with payment
 pub fn call_management_with_payment<T: ArgumentEncoder, R: for<'a> ArgumentDecoder<'a>>(
     method: &str,
     args: T,
@@ -359,7 +386,8 @@ pub fn call_management_with_payment<T: ArgumentEncoder, R: for<'a> ArgumentDecod
     call_with_payment(Principal::management_canister(), method, args, fee)
 }
 
-pub fn validate_network(network: &str) -> ICBitcoinNetwork {
+/// Utility function to translate the network string to the IC BitcoinNetwork
+pub fn to_ic_bitcoin_network(network: &str) -> ICBitcoinNetwork {
     if network == "mainnet" {
         ICBitcoinNetwork::Mainnet
     } else if network == "testnet" {
@@ -369,9 +397,9 @@ pub fn validate_network(network: &str) -> ICBitcoinNetwork {
     }
 }
 
-// Utility function to translate the bitcoin network from the IC cdk
-// to the bitoin network of the rust-bitcoin library.
-fn match_network(bitcoin_network: BitcoinNetwork) -> Network {
+/// Utility function to translate the bitcoin network from the IC cdk
+/// to the bitoin network of the rust-bitcoin library.
+fn to_bitcoin_network(bitcoin_network: BitcoinNetwork) -> Network {
     match bitcoin_network {
         BitcoinNetwork::Mainnet => Network::Bitcoin,
         BitcoinNetwork::Testnet => Network::Testnet,
@@ -379,11 +407,19 @@ fn match_network(bitcoin_network: BitcoinNetwork) -> Network {
     }
 }
 
-pub fn check_tx_hashes(transaction: &Transaction, sig_hashes: &[SegwitV0Sighash]) -> bool {
-    transaction.input.len() == sig_hashes.len()
+/// Check the length of the transaction and the signatures
+pub fn check_tx_hashes_len(
+    transaction: &Transaction,
+    sig_hashes: &[SegwitV0Sighash],
+) -> Result<(), Error> {
+    if transaction.input.len() != sig_hashes.len() {
+        Err(Error::TransactionAndSignaturesMismatch)
+    } else {
+        Ok(())
+    }
 }
 
-// Converts a SEC1 ECDSA signature to the DER format.
+/// Converts a SEC1 ECDSA signature to the DER format.
 fn sign_to_der(sign: Vec<u8>) -> Vec<u8> {
     let r: Vec<u8> = if sign[0] & 0x80 != 0 {
         // r is negative. Prepend a zero byte.

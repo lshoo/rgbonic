@@ -2,7 +2,7 @@ use bitcoin::{consensus, hashes::Hash, ScriptBuf, SegwitV0Sighash, Transaction};
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
-use crate::{error::Error, utils::check_tx_hashes};
+use crate::{error::Error, utils::check_tx_hashes_len};
 
 pub struct TransactionInfo {
     pub tx: Transaction,
@@ -16,15 +16,13 @@ impl TransactionInfo {
         witness_script: ScriptBuf,
         sig_hashes: Vec<SegwitV0Sighash>,
     ) -> Result<Self, Error> {
-        if check_tx_hashes(&tx, &sig_hashes) {
-            Ok(TransactionInfo {
-                tx,
-                witness_script,
-                sig_hashes,
-            })
-        } else {
-            Err(Error::AmountsAndAddressesMismatch)
-        }
+        check_tx_hashes_len(&tx, &sig_hashes)?;
+
+        Ok(TransactionInfo {
+            tx,
+            witness_script,
+            sig_hashes,
+        })
     }
 
     // Get the transaction
