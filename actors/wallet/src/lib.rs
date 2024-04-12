@@ -18,19 +18,20 @@ use crate::error::WalletError;
 
 use base::tx::RawTransactionInfo;
 use base::utils::{create_wallet, to_ic_bitcoin_network};
-use candid::Principal;
+use candid::{CandidType, Principal};
 use domain::SelfCustodyKey;
 use ic_cdk::api::management_canister::bitcoin::Satoshi;
 use ic_cdk::export_candid;
+use serde::Deserialize;
 
 /// Create a wallet when init the wallet canister
 #[ic_cdk::init]
-async fn init(network: String, steward_canister: String, key_name: String) {
+async fn init(args: InitArgument) {
     ic_wasi_polyfill::init(&[0u8; 32], &[]);
 
-    let network = to_ic_bitcoin_network(&network);
+    let network = to_ic_bitcoin_network(&args.network);
     let steward_canister =
-        Principal::from_str(&steward_canister).expect("Failed to parse steward canister id");
+        Principal::from_str(&args.steward_canister).expect("Failed to parse steward canister id");
 
     // TODO: FIXME when bitcoin network is standby
     // let owner = ic_caller();
@@ -54,7 +55,7 @@ async fn init(network: String, steward_canister: String, key_name: String) {
             .set(Metadata {
                 network,
                 steward_canister,
-                key_name,
+                key_name: args.key_name,
                 ..Default::default()
             })
             .expect("Failed to init network");
@@ -79,3 +80,10 @@ pub fn ic_time() -> u64 {
 }
 
 export_candid!();
+
+#[derive(CandidType, Deserialize)]
+struct InitArgument {
+    network: String,
+    steward_canister: String,
+    key_name: String,
+}
