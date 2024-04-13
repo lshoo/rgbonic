@@ -37,7 +37,6 @@ pub async fn update_ecdsa_key(req: UpdateKeyRequest) -> Result<bool, StewardErro
 
 #[update]
 pub async fn public_key(
-    network: String,
     derivation_path: Vec<Vec<u8>>,
 ) -> Result<Vec<u8>, StewardError> {
     let caller = ic_caller();

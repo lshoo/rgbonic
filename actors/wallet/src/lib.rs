@@ -32,20 +32,22 @@ async fn init(args: InitArgument) {
     let network = to_ic_bitcoin_network(&args.network);
     let steward_canister =
         Principal::from_str(&args.steward_canister).expect("Failed to parse steward canister id");
+    let key_name = args.key_name.clone();
 
-    // TODO: FIXME when bitcoin network is standby
-    // let owner = ic_caller();
+    // FIXME when bitcoin network is standby
+    let owner = ic_caller();
 
-    // let wallet_key = SelfCustodyKey {
-    //     network,
-    //     owner,
-    //     steward_canister,
-    // };
+    let wallet_key = SelfCustodyKey {
+        network,
+        owner,
+        steward_canister,
+    };
 
     // Create a wallet using ECDSA Key canister and interface
-    // let wallet = create_wallet(owner, steward_canister, network, key_name.clone())
-    //     .await
-    //     .map(|w| w.into()).expect("Failed to create first wallet in init wallet canister");
+    let wallet = create_wallet(owner, steward_canister, network, key_name.clone())
+        .await
+        .map(|w| w.into())
+        .expect("Failed to create first wallet in init wallet canister");
 
     STATE.with(|m| {
         let mut state = m.borrow_mut();
@@ -62,7 +64,7 @@ async fn init(args: InitArgument) {
 
         state.controllers.insert(ic_caller(), ic_time());
 
-        // state.raw_wallet.insert(wallet_key, wallet);
+        state.raw_wallet.insert(wallet_key, wallet);
     });
 }
 
