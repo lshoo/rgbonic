@@ -17,7 +17,7 @@ use crate::domain::{
 use crate::error::WalletError;
 
 use base::tx::RawTransactionInfo;
-use base::utils::{create_wallet, to_ic_bitcoin_network};
+use base::utils::{create_p2wsh_multisig22_wallet, to_ic_bitcoin_network};
 use candid::{CandidType, Principal};
 use domain::SelfCustodyKey;
 use ic_cdk::api::management_canister::bitcoin::Satoshi;
@@ -44,7 +44,7 @@ async fn init(args: InitArgument) {
     };
 
     // Create a wallet using ECDSA Key canister and interface
-    let wallet = create_wallet(owner, steward_canister, network, key_name.clone())
+    let wallet = create_p2wsh_multisig22_wallet(owner, steward_canister, network, key_name.clone())
         .await
         .map(|w| w.into())
         .expect("Failed to create first wallet in init wallet canister");
@@ -68,10 +68,10 @@ async fn init(args: InitArgument) {
     });
 }
 
-#[ic_cdk::update]
-fn issue_rgb20() -> String {
-    rgb::issue_rgb20()
-}
+// #[ic_cdk::update]
+// fn issue_rgb20() -> String {
+//     rgb::issue_rgb20()
+// }
 
 pub fn ic_caller() -> Principal {
     ic_cdk::caller()

@@ -63,8 +63,8 @@ impl From<bitcoin::secp256k1::Error> for Error {
     }
 }
 
-impl From<bitcoin::address::Error> for Error {
-    fn from(e: bitcoin::address::Error) -> Self {
+impl From<bitcoin::address::error::ParseError> for Error {
+    fn from(e: bitcoin::address::error::ParseError) -> Self {
         Error::BitcoinAddressError(e.to_string())
     }
 }

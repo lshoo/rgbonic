@@ -20,11 +20,17 @@ use crate::error::WalletError;
 /// Get an exists address for the caller,
 /// or create a new one if it doesn't exist
 #[update]
-pub async fn get_or_create_wallet_address() -> Result<String, WalletError> {
+pub async fn p2wsh_address() -> Result<String, WalletError> {
     let caller = ic_caller();
 
-    crate::bitcoin::get_or_create_wallet_address(caller).await
+    crate::bitcoin::get_or_create_p2wsh_address_str(caller).await
 }
+
+// #[update]
+// pub async fn p2wpkh_adddress() -> Result<String, WalletError> {
+//     let caller = ic_caller();
+//     crate::bitcoin::get_or_create_p2pwpkh_address_str(caller).await
+// }
 
 /// Register ecdsa key of this canister if the caller is controller and the key donesn't exists
 /// Returns true if success, or returns `RegisterECDSAKeyError`

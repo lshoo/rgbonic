@@ -10,6 +10,15 @@ pub struct Wallet {
     pub address: Address,
     // The derivation path of the wallet, derived from the user's principal.
     pub derivation_path: Vec<Vec<u8>>,
+
+    pub wallet_type: WalletType,
+}
+
+/// A wallet type of contains Single signature or 2-of-2 multisig.
+#[derive(Clone, Debug, CandidType, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum  WalletType {
+    Single,
+    Multisig22,
 }
 
 #[derive(CandidType, Clone, Deserialize, Debug, Serialize)]

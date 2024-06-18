@@ -3,7 +3,7 @@ pub mod response;
 
 use std::str::FromStr;
 
-use base::ICBitcoinNetwork;
+use base::{domain::WalletType, ICBitcoinNetwork};
 use bitcoin::{Address, ScriptBuf};
 use candid::{CandidType, Decode, Encode, Principal};
 use ic_stable_structures::{storable::Bound, Storable};
@@ -52,6 +52,7 @@ pub struct RawWallet {
     pub witness_script: Vec<u8>,
     pub address: String,
     pub derivation_path: Vec<Vec<u8>>,
+    pub wallet_type: WalletType,
 }
 
 impl From<RawWallet> for Wallet {
@@ -60,6 +61,7 @@ impl From<RawWallet> for Wallet {
             witness_script: ScriptBuf::from_bytes(wallet.witness_script),
             address: Address::from_str(&wallet.address).unwrap().assume_checked(),
             derivation_path: wallet.derivation_path,
+            wallet_type: wallet.wallet_type,
         }
     }
 }
@@ -70,6 +72,7 @@ impl From<Wallet> for RawWallet {
             witness_script: ScriptBuf::into_bytes(wallet.witness_script),
             address: wallet.address.to_string(),
             derivation_path: wallet.derivation_path,
+            wallet_type: wallet.wallet_type,
         }
     }
 }

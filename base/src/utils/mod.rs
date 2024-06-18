@@ -19,7 +19,7 @@ use crate::constants::{
     DEFAULT_FEE_MILLI_SATOSHI, DUST_AMOUNT_SATOSHI, SEND_TRANSACTION_BASE_CYCLES,
     SEND_TRANSACTION_PER_BYTE_CYCLES, SIG_HASH_TYPE,
 };
-use crate::domain::{MultiSigIndex, Wallet};
+use crate::domain::{MultiSigIndex, Wallet, WalletType};
 use crate::tx::TransactionInfo;
 use crate::{bitcoins, ecdsa, ICBitcoinNetwork};
 use crate::{constants::GET_BALANCE_COST_CYCLES, error::Error};
@@ -297,7 +297,7 @@ pub async fn send_transaction(transaction: Vec<u8>, network: BitcoinNetwork) -> 
 }
 
 /// Create wallet for a given Principal, steward_canister, bitcoin network and key_name
-pub async fn create_wallet(
+pub async fn create_p2wsh_multisig22_wallet(
     principal: Principal,
     steward_canister: Principal,
     bitcoin_network: ICBitcoinNetwork,
@@ -336,13 +336,14 @@ pub async fn create_wallet(
 
     // Generate the wallet address from the P2WSH script pubkey
     let address =
-        bitcoin::Address::from_script(&script_pub_key, to_bitcoin_network(bitcoin_network))
-            .map_err(Error::from)?;
+        bitcoin::Address::p2wsh(&script_pub_key, to_bitcoin_network(bitcoin_network));
+            
 
     Ok(Wallet {
         witness_script,
         derivation_path,
         address,
+        wallet_type: WalletType::Multisig22,
     })
 }
 
@@ -419,7 +420,7 @@ pub fn to_ic_bitcoin_network(network: &str) -> ICBitcoinNetwork {
 
 /// Utility function to translate the bitcoin network from the IC cdk
 /// to the bitoin network of the rust-bitcoin library.
-fn to_bitcoin_network(bitcoin_network: BitcoinNetwork) -> Network {
+pub fn to_bitcoin_network(bitcoin_network: BitcoinNetwork) -> Network {
     match bitcoin_network {
         BitcoinNetwork::Mainnet => Network::Bitcoin,
         BitcoinNetwork::Testnet => Network::Testnet,
@@ -440,7 +441,7 @@ pub fn check_tx_hashes_len(
 }
 
 /// Converts a SEC1 ECDSA signature to the DER format.
-fn sign_to_der(sign: Vec<u8>) -> Vec<u8> {
+pub fn sign_to_der(sign: Vec<u8>) -> Vec<u8> {
     let r: Vec<u8> = if sign[0] & 0x80 != 0 {
         // r is negative. Prepend a zero byte.
         let mut tmp = vec![0x00];
